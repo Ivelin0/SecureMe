@@ -1,0 +1,10 @@
+.qt
+.rcc
+android-build
+CMakeFiles
+secureme_autogen
+android-secureme-deployment-settings.json
+cmake_install.cmake
+CMakeCache.txt
+libsecureme_arm64-v8a.so
+Makefile
