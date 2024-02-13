@@ -14,6 +14,7 @@ protected:
 public:
     virtual std::string getServiceName() = 0;
 
+    virtual void ask_permissions() = 0;
     virtual void start_service() = 0;
     virtual void start_activity() = 0;
 };
