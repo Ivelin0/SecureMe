@@ -4,9 +4,12 @@
     android:installLocation="auto"
     android:versionCode="1"
     android:versionName="1.0">
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <supports-screens
         android:anyDensity="true"
@@ -55,5 +58,19 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/qtprovider_paths" />
         </provider>
+
+        <receiver android:name=".BootServiceBroadcastReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <service android:process=":qt_service" android:name=".services.BootService">
+            <meta-data android:name="android.app.lib_name"
+                android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+            <meta-data android:name="android.app.arguments" android:value="--service" />
+            <meta-data android:name="android.app.background_running" android:value="true" />
+        </service>
+
     </application>
 </manifest>

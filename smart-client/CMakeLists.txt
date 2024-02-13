@@ -10,10 +10,10 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 
 set(PROJECT_SOURCES
-        src/BootService.cpp
         src/main.cpp
         src/AndroidService.cpp
         src/NotificationManager.cpp
+        src/services/BootService.cpp
 ) 
 
 file(GLOB SOURCES ${PROJECT_SOURCES})
