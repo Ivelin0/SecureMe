@@ -7,18 +7,22 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 COMPONENTS Gui REQUIRED)
+find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 
 set(PROJECT_SOURCES
-    src/main.cpp
+        src/BootService.cpp
+        src/main.cpp
+        src/AndroidService.cpp
+        src/NotificationManager.cpp
 ) 
 
+file(GLOB SOURCES ${PROJECT_SOURCES})
 qt_add_executable(secureme
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
 )
 
-target_link_libraries(secureme PRIVATE Qt6::Gui)
+target_link_libraries(secureme PRIVATE Qt6::Gui Qt6::CorePrivate)
 
 if(ANDROID)
     set(ANDROID_TARGET_SDK_VERSION 34)
