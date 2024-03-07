@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2020", // Adjust based on your Node.js version and feature needs
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./dist", // Ensure this is correctly relative to your tsconfig.json
+    "moduleResolution": "node",
+    "resolveJsonModule": true, // If you need to import JSON files directly
+    "experimentalDecorators": true, // If using TypeScript decorators
+    "emitDecoratorMetadata": true // If your project uses reflection-metadata for decorators
+  },
+  "include": ["src/**/*.ts"], // Adjust if your source files are in a specific folder
+  "exclude": ["node_modules", "**/*.spec.ts"] // Exclude node_modules and test files
+}
