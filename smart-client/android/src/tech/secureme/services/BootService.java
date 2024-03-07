@@ -10,6 +10,8 @@ import android.app.Notification.Builder;
 import android.app.PendingIntent;
 import org.qtproject.qt.android.bindings.QtService;
 import android.content.Intent;
+import android.app.Service;
+import android.content.pm.ServiceInfo;
 
 public class BootService extends QtService {
     private static final String TAG = "AndroidService";
@@ -26,20 +28,12 @@ public class BootService extends QtService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int ret = super.onStartCommand(intent, flags, startId);
-
-        return START_STICKY;
+        return Service.START_STICKY;
     }
 
-    public static void serviceStart(android.content.Context context) {
-        android.content.Intent pQtAndroidService = new android.content.Intent(context, BootService.class);
-        pQtAndroidService.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startService(pQtAndroidService);
+    public static void startService(Context ctx) {
+        ctx.startService(new Intent(ctx, BootService.class));
     }
 
-    public static void serviceStop(android.content.Context context) {
-        android.content.Intent pQtAndroidService = new android.content.Intent(context, BootService.class);
-        context.stopService(pQtAndroidService);
-    }
 
 }

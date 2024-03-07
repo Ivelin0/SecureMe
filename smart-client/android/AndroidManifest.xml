@@ -59,16 +59,19 @@
                 android:resource="@xml/qtprovider_paths" />
         </provider>
 
-        <receiver android:name=".BootServiceBroadcastReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <service android:process=":qt_service" android:name=".services.BootService">
+        <service
+                android:process=":qt_service_boot" android:name=".services.BootService">
             <meta-data android:name="android.app.lib_name"
-                android:value="-- %%INSERT_APP_LIB_NAME%% --" />
-            <meta-data android:name="android.app.arguments" android:value="--service" />
+                       android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+            <meta-data android:name="android.app.arguments" android:value="--boot_service" />
+            <meta-data android:name="android.app.background_running" android:value="true" />
+        </service>
+
+        <service
+                android:process=":qt_service_web" android:name=".services.WebService">
+            <meta-data android:name="android.app.lib_name"
+                       android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+            <meta-data android:name="android.app.arguments" android:value="--web_service" />
             <meta-data android:name="android.app.background_running" android:value="true" />
         </service>
 
