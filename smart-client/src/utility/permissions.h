@@ -10,7 +10,9 @@ namespace utility
     enum class PERMISSIONS
     {
         POST_NOTIFICATIONS,
-        ACCESS_BACKGROUND_LOCATION
+        ACCESS_BACKGROUND_LOCATION,
+        ACCESS_FINE_LOCATION,
+        ACCESS_COARSE_LOCATION
     };
 
     extern std::map<PERMISSIONS, QString> permissions;
