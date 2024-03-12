@@ -1,25 +1,47 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { IncomingMessage, createServer } from "http";
 import { WebSocketServer } from "ws";
-import { Server as HttpServer } from "http";
-import WebSocket from "ws";
+import cors from "cors";
 import { SecureMeWebSocket } from "./models/resources/websocket.model";
+import * as admin from "firebase-admin";
+import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
+import deviceRouter from "./routes/device.route";
 
-const app: express.Application = express();
-const server: HttpServer = createServer(app);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+});
+
+const app = express();
+const server = createServer(app);
+
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const wss1 = new WebSocketServer({ noServer: true });
+const ws_web_client = new WebSocketServer({ noServer: true });
+export const ws_smart_client = new WebSocketServer({ noServer: true });
 
-wss1.on(
+app.use(deviceRouter);
+
+ws_smart_client.on(
   "connection",
   function connection(ws: SecureMeWebSocket, request: IncomingMessage) {
     ws.on("error", console.error);
 
     const id = request?.url?.substring(1);
     ws.brand = id ?? "unkown";
+
+    ws.on("message", (data: Buffer) => {
+      ws_web_client.clients.forEach((client: any) => {
+        client.send(
+          JSON.stringify({
+            event: "locations",
+            message: JSON.parse(data.toString()),
+          })
+        );
+      });
+    });
 
     ws.on("ping", function message(_data: Buffer) {
       ws.send("pong");
@@ -28,20 +50,16 @@ wss1.on(
 );
 
 server.on("upgrade", function upgrade(request, socket, head) {
-  wss1.handleUpgrade(request, socket, head, function done(ws: WebSocket) {
-    wss1.emit("connection", ws, request);
-  });
-});
-
-app.post("/boot", (req: Request, res: Response) => {
-  const { brand } = req.body;
-
-  wss1.clients.forEach(function each(client: any) {
-    if (client.id !== brand)
-      client.send(JSON.stringify({ event: "boot", message: brand }));
-  });
-
-  res.json({ message: "okay" });
+  const pathname = request.url;
+  if (pathname == "/smart_client")
+    ws_smart_client.handleUpgrade(request, socket, head, (ws) => {
+      ws_smart_client.emit("connection", ws, request);
+    });
+  else if (pathname == "/web_client")
+    ws_web_client.handleUpgrade(request, socket, head, (ws) => {
+      ws_web_client.emit("connection", ws, request);
+    });
+  else socket.destroy();
 });
 
 server.listen(8000, () => {
