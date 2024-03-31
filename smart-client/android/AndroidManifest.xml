@@ -10,6 +10,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+
+    
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.front.autofocus" android:required="true" />
+
 
     <supports-screens
         android:anyDensity="true"
@@ -25,7 +34,7 @@
         android:fullBackupOnly="false"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name="org.qtproject.qt.android.bindings.QtActivity"
+            android:name="tech.secureme.MyActivity"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
             android:label="secureme"
             android:launchMode="singleTop"
@@ -43,11 +52,34 @@
             <meta-data
                 android:name="android.app.arguments"
                 android:value="" />
+            <meta-data android:name="android.app.splash_screen_drawable" android:resource="@drawable/splash" />
+            <meta-data android:name="android.app.splash_screen_sticky" android:value="true" />
+
 
             <meta-data
                 android:name="android.app.extract_android_style"
                 android:value="minimal" />
         </activity>
+
+        <receiver android:name=".BootServiceBroadcastReceiver" android:directBootAware="true" android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+                <receiver
+            android:name=".SecureMeDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_sample" />
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -60,18 +92,29 @@
         </provider>
 
         <service
-                android:process=":qt_service_boot" android:name=".services.BootService">
-            <meta-data android:name="android.app.lib_name"
-                       android:value="-- %%INSERT_APP_LIB_NAME%% --" />
-            <meta-data android:name="android.app.arguments" android:value="--boot_service" />
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="true"
+             android:directBootAware="true">
+            <intent-filter>
+               <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
             <meta-data android:name="android.app.background_running" android:value="true" />
         </service>
 
         <service
-                android:process=":qt_service_web" android:name=".services.WebService">
+            android:process=":qt_service_camera" android:name=".services.CameraService"
+            android:foregroundServiceType="camera">
+            <meta-data android:name="android.app.lib_name"
+                android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+                <meta-data android:name="android.app.arguments" android:value="--camera_service" />
+            <meta-data android:name="android.app.background_running" android:value="true" />
+        </service>
+
+        <service
+                android:process=":qt_service_boot" android:name=".services.BootService">
             <meta-data android:name="android.app.lib_name"
                        android:value="-- %%INSERT_APP_LIB_NAME%% --" />
-            <meta-data android:name="android.app.arguments" android:value="--web_service" />
+            <meta-data android:name="android.app.arguments" android:value="--boot_service" />
             <meta-data android:name="android.app.background_running" android:value="true" />
         </service>
 

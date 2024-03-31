@@ -12,7 +12,8 @@ namespace utility
         POST_NOTIFICATIONS,
         ACCESS_BACKGROUND_LOCATION,
         ACCESS_FINE_LOCATION,
-        ACCESS_COARSE_LOCATION
+        ACCESS_COARSE_LOCATION,
+        CAMERA
     };
 
     extern std::map<PERMISSIONS, QString> permissions;

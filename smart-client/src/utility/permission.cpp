@@ -7,14 +7,16 @@ namespace utility
         POST_NOTIFICATIONS,
         ACCESS_BACKGROUND_LOCATION,
         ACCESS_FINE_LOCATION,
-        ACCESS_COARSE_LOCATION
+        ACCESS_COARSE_LOCATION,
+        CAMERA
     };
 
     std::map<PERMISSIONS, QString> permissions = {
         {PERMISSIONS::POST_NOTIFICATIONS, "POST_NOTIFICATIONS"},
         {PERMISSIONS::ACCESS_BACKGROUND_LOCATION, "ACCESS_BACKGROUND_LOCATION"},
-        {PERMISSIONS::ACCESS_FINE_LOCATION, "android.permission.ACCESS_FINE_LOCATION"},
-        {PERMISSIONS::ACCESS_COARSE_LOCATION, "android.permission.ACCESS_COARSE_LOCATION"}};
+        {PERMISSIONS::ACCESS_FINE_LOCATION, "ACCESS_FINE_LOCATION"},
+        {PERMISSIONS::ACCESS_COARSE_LOCATION, "ACCESS_COARSE_LOCATION"},
+        {PERMISSIONS::CAMERA, "CAMERA"}};
 
     void ask_permission_android(PERMISSIONS permission)
     {
@@ -22,7 +24,7 @@ namespace utility
         auto requestResult = QtAndroidPrivate::requestPermission(notificationPermission);
         if (requestResult.result() != QtAndroidPrivate::Authorized)
         {
-            qWarning() << "Failed to acquire permissions";
+            qWarning() << "Failed to acquire permission " << permissions[permission];
         }
     }
 }
