@@ -6,6 +6,7 @@ import { SecureMeWebSocket } from "./models/resources/websocket.model";
 import * as admin from "firebase-admin";
 import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
 import deviceRouter from "./routes/device.route";
+import userRouter from "./routes/user.route";
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -22,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 const ws_web_client = new WebSocketServer({ noServer: true });
 export const ws_smart_client = new WebSocketServer({ noServer: true });
 
-app.use(deviceRouter);
+app.use(deviceRouter, userRouter);
 
 ws_smart_client.on(
   "connection",
