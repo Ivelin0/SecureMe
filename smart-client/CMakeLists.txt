@@ -8,19 +8,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 include(/home/ivelin/android_openssl/android_openssl.cmake)
 
-find_package(Qt6 COMPONENTS Gui Core Network Positioning Widgets Multimedia WebSockets Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Gui Core Network Positioning Widgets Multimedia WebSockets Concurrent Qml REQUIRED)
 
 set(PROJECT_SOURCES
         src/main.cpp
         src/AndroidService.cpp
+        src/NetworkManager.cpp 
+        src/StorageManager.cpp
         src/NotificationManager.cpp
         src/utility/permission.cpp
         src/utility/device.cpp
         src/services/BootService.cpp
         src/services/LocationService.cpp
         src/services/CameraService.cpp
-        src/services/WebService.cpp
-        src/services/WebService.h
 )
 set(OpenCV_DIR "/home/ivelin/opencv/release")
 find_package( OpenCV REQUIRED )
@@ -41,7 +41,7 @@ foreach(item IN LISTS ${OpenCV_LIBS})
 
 endforeach()
 
-target_link_libraries(secureme PRIVATE Qt6::Gui Qt6::CorePrivate Qt6::Network Qt6::Positioning Qt6::Widgets Qt6::Multimedia Qt6::WebSockets Qt6::Concurrent
+target_link_libraries(secureme PRIVATE Qt6::Gui Qt6::CorePrivate Qt6::Network Qt6::Positioning Qt6::Widgets Qt6::Multimedia Qt6::WebSockets Qt6::Concurrent Qt6::Qml
 )
 
 if(ANDROID)
@@ -51,6 +51,18 @@ if(ANDROID)
     set_property(TARGET secureme APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
                  ${CMAKE_CURRENT_SOURCE_DIR}/android)
 
-    
+            qt6_add_resources(secureme "main"
+                 PREFIX
+                     "/"
+                 FILES
+                 "qml/CustomTextField.qml"
+                     "qml/Auth.qml"
+                     "qml/AppStyle.qml"
+                     "qml/CustomButton.qml"
+                     "qml/home.qml"
+                     "qml/main.qml"
+                     "qml/images/logo.png"
+                 )
+
     qt_finalize_executable(secureme)
 endif()

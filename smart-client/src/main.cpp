@@ -19,24 +19,23 @@
 #include "services/LocationService.h"
 #include "services/BootService.h"
 #include "NotificationManager.h"
-#include "services/WebService.h"
+#include "services/CameraService.h"
 #include "AndroidService.h"
+#include "NetworkManager.h"
+#include "StorageManager.h"
+#include <QImage>
+#include <QString>
+#include <jni.h>
+#include "utility/device.h"
 
 int main(int argc, char *argv[])
 {
 #if defined(Q_OS_ANDROID)
-
-    std::vector<AndroidService*> initial_services {BootService::getInstance()};
-    std::vector<AndroidService*> services {LocationService::getInstance()};
-
-    for (AndroidService* service : initial_services) {
-        services.push_back(service);
-    }
-
+    std::vector<AndroidService *> services{BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance()};
     for (int i = 1; i < argc; i++)
     {
-        for(size_t j = 0; j < services.size(); j++) {
-
+        for (size_t j = 0; j < services.size(); j++)
+        {
             if ("--" + services[j]->getServiceName() != argv[i])
                 continue;
 
@@ -45,20 +44,30 @@ int main(int argc, char *argv[])
 
             return app.exec();
         }
-        
     }
 #endif
     QGuiApplication app(argc, argv, true);
 
-#if defined(Q_OS_ANDROID)
-    QNativeInterface::QAndroidApplication::hideSplashScreen(333);
+    QQmlApplicationEngine engine;
+    QQmlContext *engine_context = engine.rootContext();
 
-    for(size_t i = 0; i < initial_services.size(); i++) {
-        initial_services[i]->ask_permissions();
-        initial_services[i]->start_service();
+    engine_context->setContextProperty("networkManager", NetworkManager::getInstance());
+    engine_context->setContextProperty("storageManager", StorageManager::getInstance());
+    engine_context->setContextProperty("device", utility::Device::getInstance());
+
+    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+
+    if (engine.rootObjects().isEmpty())
+    {
+        qWarning() << "Cannot init QmlApplicationEngine!";
+        return EXIT_FAILURE;
     }
 
-    for(size_t i = 0; i < services.size(); i++)
+
+#if defined(Q_OS_ANDROID)
+    QNativeInterface::QAndroidApplication::hideSplashScreen(555);
+
+    for (size_t i = 0; i < services.size(); i++)
         services[i]->ask_permissions();
 #endif
 
