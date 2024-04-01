@@ -28,6 +28,31 @@
 #include <jni.h>
 #include "utility/device.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    JNIEXPORT jstring JNICALL Java_tech_secureme_services_MyFirebaseMessagingService_callQtFunction(JNIEnv *env, jobject obj)
+    {
+        QString result = StorageManager::getInstance()->getAuthToken();
+        return env->NewStringUTF(result.toUtf8().constData());
+    }
+#ifdef __cplusplus
+}
+#endif
+
+extern "C"
+{
+    JNIEXPORT void JNICALL
+    Java_tech_secureme_services_MyFirebaseMessagingService_onTokenReceived(JNIEnv *env, jclass clazz, jstring token)
+    {
+
+        QString qToken = QJniObject::fromLocalRef(token).toString();
+
+        StorageManager::getInstance()->attachFcmToken(qToken);
+    }
+}
+
 int main(int argc, char *argv[])
 {
 #if defined(Q_OS_ANDROID)
@@ -62,7 +87,6 @@ int main(int argc, char *argv[])
         qWarning() << "Cannot init QmlApplicationEngine!";
         return EXIT_FAILURE;
     }
-
 
 #if defined(Q_OS_ANDROID)
     QNativeInterface::QAndroidApplication::hideSplashScreen(555);
