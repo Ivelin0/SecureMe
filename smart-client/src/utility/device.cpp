@@ -3,11 +3,22 @@
 
 namespace utility
 {
+    Device *Device::instance = nullptr;
 
-    QString getAndroidDeviceModel()
+    QString Device::getFullDeviceModel()
     {
-        QJniObject brandObject = QJniObject::getStaticObjectField<jstring>("android/os/Build", "BRAND");
+        QString manufacturer = (QJniObject::getStaticObjectField<jstring>("android/os/Build", "MANUFACTURER")).toString();
+        QString brand = (QJniObject::getStaticObjectField<jstring>("android/os/Build", "BRAND")).toString();
 
-        return brandObject.toString();
+        if (manufacturer == brand)
+            return brand;
+        return manufacturer + " " + brand;
+    }
+
+    Device *Device::getInstance()
+    {
+        if (instance == nullptr)
+            instance = new Device();
+        return instance;
     }
 }

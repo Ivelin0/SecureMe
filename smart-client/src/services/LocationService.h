@@ -7,7 +7,7 @@
 #include <QGeoPositionInfoSource>
 #include <QWebSocket>
 
-class LocationService : public QObject, public AndroidService
+class LocationService : public AndroidService
 {
     Q_OBJECT
 private:
@@ -18,12 +18,10 @@ private:
 
     QWebSocket wsLocation;
 
-public slots:
-    void start_location_thread();
-
 public:
     void ask_permissions() override;
     void start_service() override;
+    void stop_service() override;
     void start_activity() override;
 
     std::string getServiceName() override;

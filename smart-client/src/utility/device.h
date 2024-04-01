@@ -2,10 +2,21 @@
 #define SECUREME_DEVICE_H
 
 #include <QString>
+#include <QObject>
 
-namespace utility {
+namespace utility
+{
+    class Device : public QObject
+    {
+        Q_OBJECT
 
-    QString getAndroidDeviceModel();
+        static Device *instance;
+
+    public:
+        Q_INVOKABLE QString getFullDeviceModel();
+
+        static Device *getInstance();
+    };
 
 }
 

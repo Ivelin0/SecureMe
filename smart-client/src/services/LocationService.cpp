@@ -4,13 +4,20 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QNetworkCookie>
+#include <QNetworkCookieJar>
+#include <QVariant>
+#include <QTimer>
+#include <QUrlQuery>
 
 #include "LocationService.h"
 #include "../AndroidService.h"
 #include "../NotificationManager.h"
 #include "../utility/device.h"
 #include "../utility/permissions.h"
-
+#include "../StorageManager.h"
+#include <qvariant.h>
+#include "../utility/device.h"
 
 LocationService *LocationService::instance = nullptr;
 
@@ -41,7 +48,7 @@ void LocationService::ask_permissions()
     utility::ask_permission_android(utility::PERMISSIONS::ACCESS_FINE_LOCATION);
     utility::ask_permission_android(utility::PERMISSIONS::POST_NOTIFICATIONS);
 }
-
+int i = 0;
 void LocationService::start_activity()
 {
     NotificationClient::getInstance()->setNotification("SecureMe", "started");
@@ -57,11 +64,14 @@ void LocationService::start_activity()
                              qreal latitude = info.coordinate().latitude();
                              qreal longitude = info.coordinate().longitude();
 
-                             qDebug() << "Current coordinates are:" << latitude << "," << longitude;
-
                              QJsonObject json;
+
+                             json["event"] = "location";
                              json["latittude"] = latitude;
                              json["longitude"] = longitude;
+                             json["full_brand"] = utility::Device::getInstance()->getFullDeviceModel();
+
+                             NotificationClient::getInstance()->setNotification("Locations", QString::number(latitude) + " " + QString::number(longitude));
 
                              QJsonDocument jsonDoc(json);
 
@@ -72,11 +82,29 @@ void LocationService::start_activity()
     QObject::connect(source, &QGeoPositionInfoSource::errorOccurred, [](QGeoPositionInfoSource::Error positioningError)
                      { NotificationClient::getInstance()->setNotification("Error", QString::number(positioningError)); });
 
+    source->setUpdateInterval(10000);
+
     QObject::connect(
         thread, &QThread::started, [&source]()
-        {
-                                     source->startUpdates(); });
-    wsLocation.open(QUrl("ws://secureme.live/smart_client"));
+        { source->startUpdates(); });
+
+    QUrl url(QString("wss://secureme.live/api/smart_client"));
+    QUrlQuery query;
+
+    query.addQueryItem("auth_token", StorageManager::getInstance()->getAuthToken());
+    query.addQueryItem("fcm_token", StorageManager::getInstance()->getFcmToken());
+
+    url.setQuery(query.query());
+
+    QNetworkRequest request(url);
+    QObject::connect(&wsLocation, &QWebSocket::disconnected, [this]()
+                     {
+        NotificationClient::getInstance()->setNotification("DISCONNECT", "DISCONNECTED");
+        stop_service(); });
+
+    request.setRawHeader("Cookie", QString("auth_token=" + StorageManager::getInstance()->getAuthToken() + ";").toUtf8());
+    wsLocation.open(request);
+
     thread->start();
 }
 
@@ -84,6 +112,14 @@ void LocationService::start_service()
 {
     QJniObject::callStaticMethod<void>("tech.secureme.services.LocationService",
                                        "serviceStart",
+                                       "(Landroid/content/Context;)V",
+                                       QNativeInterface::QAndroidApplication::context());
+}
+
+void LocationService::stop_service()
+{
+    QJniObject::callStaticMethod<void>("tech.secureme.services.LocationService",
+                                       "serviceStop",
                                        "(Landroid/content/Context;)V",
                                        QNativeInterface::QAndroidApplication::context());
 }

@@ -12,6 +12,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.qtproject.qt.android.bindings.QtActivity;
 import tech.secureme.R;
 import tech.secureme.SecureMeDeviceAdminReceiver;
+import tech.secureme.services.LocationService;
+import tech.secureme.services.MyFirebaseMessagingService;
 
 public class MyActivity extends QtActivity {
 
@@ -28,27 +30,7 @@ public class MyActivity extends QtActivity {
     demoDeviceAdmin =
       new ComponentName(this, SecureMeDeviceAdminReceiver.class);
 
-    FirebaseMessaging
-      .getInstance()
-      .getToken()
-      .addOnCompleteListener(
-        new OnCompleteListener<String>() {
-          @Override
-          public void onComplete(Task<String> task) {
-            if (!task.isSuccessful()) {
-              Log.w(
-                "ERROR",
-                "Fetching FCM registration token failed",
-                task.getException()
-              );
-              return;
-            }
-            String token = task.getResult();
-
-            Log.d("Token", token);
-          }
-        }
-      );
+    MyFirebaseMessagingService.getFcmToken(getApplicationContext());
 
     FirebaseMessaging
       .getInstance()
