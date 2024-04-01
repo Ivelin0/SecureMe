@@ -2,10 +2,7 @@ import express, { Request, Response } from "express";
 import { MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
 import * as admin from "firebase-admin";
 import { getTokens } from "./redis/redis.operations";
-import {
-  STATUSES,
-  Callback,
-} from "../models/resources/callback.model";
+import { STATUSES, Callback } from "../models/resources/callback.model";
 import { StatusCodes } from "http-status-codes";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../schemas/user.schema";
