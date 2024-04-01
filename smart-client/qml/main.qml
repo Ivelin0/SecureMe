@@ -14,7 +14,7 @@ ApplicationWindow {
     Material.theme: Material.Light
     Material.accent: "#001b2a"
 
-    property string currentComponent: "SecureMe.qml"
+    property string currentComponent: "Auth.qml"
 
     Loader {
        id: componentLoader
@@ -41,7 +41,7 @@ ApplicationWindow {
             var json = JSON.parse(networkManager.convertToJsonString(responseData));
 
             if(isError) {
-               componentLoader.source = "SecureMe.qml"
+               componentLoader.source = "Auth.qml"
                return;
             }
             console.log(json.auth_token);

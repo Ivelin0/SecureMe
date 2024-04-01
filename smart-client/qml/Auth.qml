@@ -14,7 +14,7 @@ ApplicationWindow {
     Material.theme: Material.Light
     Material.accent: "#001b2a"
 
-    property string currentComponent: "SecureMe.qml"
+    property string currentComponent: "Auth.qml"
     property bool isSignIn: true
 
     Loader {
