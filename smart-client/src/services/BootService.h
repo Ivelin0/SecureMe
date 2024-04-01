@@ -6,6 +6,7 @@
 #include <string>
 class BootService : public AndroidService
 {
+    Q_OBJECT
 private:
     BootService();
     ~BootService();
@@ -14,6 +15,7 @@ private:
 public:
     void ask_permissions() override;
     void start_service() override;
+    void stop_service() override;
     void start_activity() override;
     std::string getServiceName() override;
 

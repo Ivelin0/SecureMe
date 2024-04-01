@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include "../NetworkManager.h"
 #include "../utility/permissions.h"
 #include "../utility/device.h"
 
@@ -36,23 +37,11 @@ std::string BootService::getServiceName()
 
 void BootService::start_activity()
 {
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-
-    QJsonObject json;
-    json["brand"] = utility::getAndroidDeviceModel();
-    QJsonDocument jsonDoc(json);
-    QByteArray jsonData = jsonDoc.toJson();
-
-    QNetworkRequest request(QUrl("https://secureme.live/boot"));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
-
-    manager->post(request, jsonData);
 }
 
 void BootService::ask_permissions()
 {
     utility::ask_permission_android(utility::PERMISSIONS::POST_NOTIFICATIONS);
-
 }
 
 void BootService::start_service()
@@ -61,4 +50,8 @@ void BootService::start_service()
                                        "startService",
                                        "(Landroid/content/Context;)V",
                                        QNativeInterface::QAndroidApplication::context());
+}
+
+void BootService::stop_service()
+{
 }
