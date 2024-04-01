@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { createContext } from "react";
 
 import { useState } from "react";
@@ -7,18 +7,20 @@ export const SocketContext = createContext({});
 
 export const Context = ({ children }: any) => {
   const [webSocket, setWebSocket] = useState<any>(null);
-  const [arrCallbacks, setArrCallbacks] = useState<any>([]);
+  const [arrCallbacks, setArrCallbacks] = useState<
+    Array<(event: MessageEvent<any>) => void>
+  >([]);
 
-  const addCallback = (func: any) => {
+  const addCallback = (func: (event: MessageEvent<any>) => void) => {
     setArrCallbacks([...arrCallbacks, func]);
   };
-
   useEffect(() => {
     if (!webSocket) return;
-    addCallback((event: any) => {
+    addCallback((event: MessageEvent) => {
       webSocket.send({ message: "pong" });
     });
   }, [webSocket]);
+
   useEffect(() => {
     const getAuthToken = async () => {
       const response = await fetch(
@@ -33,7 +35,7 @@ export const Context = ({ children }: any) => {
     };
 
     const initWS = async () => {
-      const ws: any = new WebSocket(
+      const ws = new WebSocket(
         `${process.env.REACT_APP_HTTP_PROXY_SERVER}/web_client?auth_token=` +
           (await getAuthToken())
       );
@@ -48,8 +50,6 @@ export const Context = ({ children }: any) => {
     webSocket.onmessage = (event: any) => {
       arrCallbacks.map((func: any) => func(event));
     };
-
-    console.log("here");
   }, [webSocket, arrCallbacks]);
 
   return (
