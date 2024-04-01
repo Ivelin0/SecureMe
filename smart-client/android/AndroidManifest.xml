@@ -100,6 +100,16 @@
             </intent-filter>
             <meta-data android:name="android.app.background_running" android:value="true" />
         </service>
+        
+        <service
+            android:process=":qt_service" android:name=".services.LocationService"
+            android:foregroundServiceType="location">
+            <meta-data android:name="android.app.lib_name"
+                android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+            <meta-data android:name="android.app.arguments" android:value="--location_service" />
+            <meta-data android:name="android.app.background_running" android:value="true" />
+        </service>
+
 
         <service
             android:process=":qt_service_camera" android:name=".services.CameraService"
