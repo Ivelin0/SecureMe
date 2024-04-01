@@ -7,6 +7,7 @@ import * as admin from "firebase-admin";
 import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
 import deviceRouter from "./routes/device.route";
 import userRouter from "./routes/user.route";
+const path = require("path");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -19,6 +20,8 @@ app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 const ws_web_client = new WebSocketServer({ noServer: true });
 export const ws_smart_client = new WebSocketServer({ noServer: true });

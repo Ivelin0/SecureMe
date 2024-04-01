@@ -1,10 +1,17 @@
 import express from "express";
-const router = express.Router();
 import deviceController from "../controllers/device.controller";
+import upload from "../middlewares/upload.middleware";
+import { authorizedHTTP } from "../middlewares/auth.middleware";
 
-router.get("/locations", deviceController.device_locations);
-router.delete("/locations", deviceController.device_locations);
+const router = express.Router();
 
-router.get("/post", deviceController.boot);
 
+router.get("/images/:fcm_token", deviceController.retrieveImages);
+
+
+router.post(
+  "/incorrect_password",
+  [authorizedHTTP, upload.single("image")],
+  deviceController.incorrect_password
+);
 export default router;
