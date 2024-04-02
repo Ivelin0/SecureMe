@@ -36,7 +36,7 @@ export const Context = ({ children }: any) => {
 
     const initWS = async () => {
       const ws = new WebSocket(
-        `${process.env.REACT_APP_HTTP_PROXY_SERVER}/web_client?auth_token=` +
+        `${process.env.REACT_APP_WS_PROXY_SERVER}/web_client?auth_token=` +
           (await getAuthToken())
       );
 
