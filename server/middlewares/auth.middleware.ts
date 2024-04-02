@@ -1,11 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import statusCodes from "http-status-codes";
-import {
-  STATUSES,
-  Error,
-  Success,
-} from "../models/resources/callback.model";
+import { STATUSES, Error, Success } from "../models/resources/callback.model";
 import { SecureMeJWT } from "../models/resources/jwt.model";
 
 const attachUserId = async (req: any): Promise<Error | Success> => {
@@ -16,9 +12,12 @@ const attachUserId = async (req: any): Promise<Error | Success> => {
       status: statusCodes.UNAUTHORIZED,
       message: "You need to log in first",
     };
-  let decoded_data: SecureMeJWT = {data: {}};
+  let decoded_data: SecureMeJWT = { data: {} };
   try {
-    decoded_data = (await jwt.verify(auth_token as string, "secret") as SecureMeJWT); 
+    decoded_data = (await jwt.verify(
+      auth_token as string,
+      String(process.env.JWT_LONGLIVED)
+    )) as SecureMeJWT;
   } catch (e) {
     return {
       type: STATUSES.ERROR,

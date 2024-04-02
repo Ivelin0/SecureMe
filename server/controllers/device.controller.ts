@@ -2,15 +2,16 @@ import express, { Request, Response } from "express";
 import { Message } from "firebase-admin/lib/messaging/messaging-api";
 import * as admin from "firebase-admin";
 import { ws_smart_client } from "../server";
-import geolib from "geolib";
+import * as geolib from "geolib";
 import fs from "fs";
 import path from "path";
-import { getTokens } from "../utility/redis/redis.operations";
-
+import { addToken, getTokens, Device } from "../utility/redis/redis.operations";
+import "dotenv/config";
 import { fcmNotify } from "../utility/helper";
 
 import { STATUSES, Callback } from "../models/resources/callback.model";
 import { StatusCodes } from "http-status-codes";
+import { User, Location, DeviceModel } from "../schemas/user.schema";
 
 export const locationHandler = async ({
   method,
@@ -63,9 +64,38 @@ const retrieveImages = (req: any, res: any) => {
   });
 };
 
-const track_location = (req: Request, res: Response) => {
-  const { latitude, longtiude } = req.body;
-  console.log(req.body);
+const track_location = async (req: any, res: Response) => {
+  const { fcm_token, latitude, longitude } = req.body;
+
+  const device = (await getTokens(req.userId)).filter(
+    (token) => token.fcm_token == fcm_token
+  )[0];
+
+  if (device?.last_location) {
+    const metersDiff = geolib.getDistance(
+      { latitude, longitude },
+      device.last_location
+    );
+
+    if (metersDiff >= Number(process.env.LOCATION_DIFFERENCE_ON_SAVE)) {
+      const user = await User.findOne({ username: req.userId });
+      user?.devices
+        .find((device: DeviceModel) => device.fcm_token == fcm_token)
+        ?.locations!.push(
+          new Location({
+            latitude: latitude,
+            longitude: longitude,
+          })
+        );
+
+      user?.save();
+    }
+  }
+
+  addToken(req.userId, {
+    fcm_token,
+    last_location: { latitude, longitude },
+  } as Device);
 
   res.json({ message: "okay" });
 };

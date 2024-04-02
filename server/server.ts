@@ -15,7 +15,11 @@ import * as redis from "redis";
 import jwt from "jsonwebtoken";
 import { authorizedHTTP, authorizedWS } from "./middlewares/auth.middleware";
 import { parseQueryParams, isAuthorized } from "./utility/helper";
+import { locationHandler } from "./controllers/device.controller";
 import SecureMeRequest from "./models/resources/request.model";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 const path = require("path");
 
 mongoose
@@ -47,10 +51,12 @@ app.use(deviceRouter, userRouter);
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-
 ws_smart_client.on(
   "connection",
-  async function connection(ws: SmartClientWebSocket, request: SecureMeRequest) {
+  async function connection(
+    ws: SmartClientWebSocket,
+    request: SecureMeRequest
+  ) {
     await authorizedWS(request);
     ws.userId = request.userId;
 
