@@ -1,23 +1,29 @@
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { createContext } from "react";
 
 import { useState } from "react";
 
-export const SocketContext = createContext({});
+interface SocketContextProps {
+  webSocket: WebSocket | null;
+  //setWebSocket: Dispatch<SetStateAction<WebSocket>>;
+  addCallback: (func: WScallback) => void;
+}
+
+type WScallback = (event: MessageEvent<any>) => void;
+
+export const SocketContext = createContext({} as SocketContextProps);
 
 export const Context = ({ children }: any) => {
-  const [webSocket, setWebSocket] = useState<any>(null);
-  const [arrCallbacks, setArrCallbacks] = useState<
-    Array<(event: MessageEvent<any>) => void>
-  >([]);
+  const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+  const [arrCallbacks, setArrCallbacks] = useState<Array<WScallback>>([]);
 
-  const addCallback = (func: (event: MessageEvent<any>) => void) => {
+  const addCallback = (func: WScallback) => {
     setArrCallbacks([...arrCallbacks, func]);
   };
   useEffect(() => {
     if (!webSocket) return;
     addCallback((event: MessageEvent) => {
-      webSocket.send({ message: "pong" });
+      webSocket.send(JSON.stringify({ message: "pong" }));
     });
   }, [webSocket]);
 
@@ -47,8 +53,8 @@ export const Context = ({ children }: any) => {
       return;
     }
 
-    webSocket.onmessage = (event: any) => {
-      arrCallbacks.map((func: any) => func(event));
+    webSocket.onmessage = (event: MessageEvent<any>) => {
+      arrCallbacks.map((func: WScallback) => func(event));
     };
   }, [webSocket, arrCallbacks]);
 

@@ -30,21 +30,24 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
     const { password, confirmPassword } = data;
     if (password != confirmPassword) {
     }
-    const response = await fetch(`${process.env.REACT_APP_HTTP_PROXY_SERVER}/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then((res) => res.json());
+    const response = await fetch(
+      `${process.env.REACT_APP_HTTP_PROXY_SERVER}/login`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    ).then((res) => res.json());
 
     navigate("/admin_panel");
   };
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <ModalHeader className="flex flex-col gap-1">Sign Up</ModalHeader>
+        <ModalHeader className="flex flex-col gap-1">Sign In</ModalHeader>
         <ModalBody>
           <Input
             autoFocus
@@ -78,22 +81,7 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
             type="password"
             variant="underlined"
           />
-          <Input
-            required
-            onChange={(event) => {
-              setData({ ...data, password: event.target.value });
-            }}
-            classNames={{
-              label: "bg-transparent",
-            }}
-            endContent={
-              <LockIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-            }
-            label="Confirm Passowrd"
-            placeholder="Enter your password"
-            type="password"
-            variant="underlined"
-          />
+
           <div className="flex py-2 px-1 justify-between">
             <Checkbox
               className="bg-transparent"
@@ -111,7 +99,7 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
             className="text-right"
             onClick={() => setSignIn((prev: boolean) => !prev)}
           >
-            Имате акаунт?
+            Нямате акаунт?
           </Link>
         </ModalBody>
         <ModalFooter>
@@ -125,7 +113,7 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
             Close
           </Button>
           <Button type="submit" color="primary">
-            Sign Up
+            Sign In
           </Button>
         </ModalFooter>
       </form>
