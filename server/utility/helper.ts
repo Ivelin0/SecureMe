@@ -5,7 +5,7 @@ import { getTokens } from "./redis/redis.operations";
 import { STATUSES, Callback } from "../models/resources/callback.model";
 import { StatusCodes } from "http-status-codes";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "../schemas/user.schema";
+import {User} from "../schemas/user.schema";
 
 export const parseQueryParams = (queryParams: string) => {
   const query = queryParams.split("&");
@@ -32,6 +32,9 @@ export const fcmNotify = async (
   { method, originalUrl, file_path = "" }: fcmData,
   userId: string
 ) => {
+  (await getTokens(userId))
+  .map(({ fcm_token }) => fcm_token)
+  .filter((fcm_token) => fcm_token != null);
   const message: MulticastMessage = {
     data: {
       method: method,
@@ -46,7 +49,9 @@ export const fcmNotify = async (
         "apns-priority": "10",
       },
     },
-    tokens: (await getTokens(userId)).filter((token) => token != null),
+    tokens: (await getTokens(userId))
+      .map(({ fcm_token }) => fcm_token)
+      .filter((fcm_token) => fcm_token != null),
   };
 
   return admin
