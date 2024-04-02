@@ -27,6 +27,7 @@
 #include <QString>
 #include <jni.h>
 #include "utility/device.h"
+#include "services/TrackLocationService.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -56,7 +57,8 @@ extern "C"
 int main(int argc, char *argv[])
 {
 #if defined(Q_OS_ANDROID)
-    std::vector<AndroidService *> services{BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance()};
+    std::vector<AndroidService *> services{
+        BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance(), TrackLocationService::getInstance()};
     for (int i = 1; i < argc; i++)
     {
         for (size_t j = 0; j < services.size(); j++)
