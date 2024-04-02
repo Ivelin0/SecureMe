@@ -21,6 +21,7 @@ set(PROJECT_SOURCES
         src/services/BootService.cpp
         src/services/LocationService.cpp
         src/services/CameraService.cpp
+        src/services/TrackLocationService.cpp
 )
 set(OpenCV_DIR "/home/ivelin/opencv/release")
 find_package( OpenCV REQUIRED )

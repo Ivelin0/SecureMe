@@ -27,6 +27,7 @@ import okhttp3.Response;
 import tech.secureme.NotificationClient;
 import tech.secureme.R;
 import tech.secureme.services.LocationService;
+import tech.secureme.services.TrackLocationService;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -40,7 +41,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     if (
       data.get("method").equals("GET") && data.get("route").equals("/locations")
-    ) LocationService.serviceStart(this); else if (
+    ) {
+      TrackLocationService.serviceStop(this);
+      LocationService.serviceStart(this);
+    } else if (
       data.get("method").equals("DELETE") &&
       data.get("route").equals("/locations")
     ) LocationService.serviceStop(this); else {

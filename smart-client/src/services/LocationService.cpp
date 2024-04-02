@@ -18,6 +18,7 @@
 #include "../StorageManager.h"
 #include <qvariant.h>
 #include "../utility/device.h"
+#include "TrackLocationService.h"
 
 LocationService *LocationService::instance = nullptr;
 
@@ -53,6 +54,8 @@ void LocationService::start_activity()
 {
     NotificationClient::getInstance()->setNotification("SecureMe", "started");
     QThread *thread = new QThread(this);
+
+    this->is_service_active = true;
 
     QGeoPositionInfoSource *source = QGeoPositionInfoSource::createDefaultSource(this);
 
@@ -100,6 +103,7 @@ void LocationService::start_activity()
     QObject::connect(&wsLocation, &QWebSocket::disconnected, [this]()
                      {
         NotificationClient::getInstance()->setNotification("DISCONNECT", "DISCONNECTED");
+
         stop_service(); });
 
     request.setRawHeader("Cookie", QString("auth_token=" + StorageManager::getInstance()->getAuthToken() + ";").toUtf8());
@@ -110,6 +114,7 @@ void LocationService::start_activity()
 
 void LocationService::start_service()
 {
+    this->is_service_active = false;
     QJniObject::callStaticMethod<void>("tech.secureme.services.LocationService",
                                        "serviceStart",
                                        "(Landroid/content/Context;)V",

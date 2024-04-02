@@ -1,5 +1,5 @@
-#ifndef LOCATION_SERVICE_H
-#define LOCATION_SERVICE_H
+#ifndef TRACK_LOCATION_SERVICE_H
+#define TRACK_LOCATION_SERVICE_H
 
 #include "../AndroidService.h"
 #include <QtCore/QObject>
@@ -7,16 +7,16 @@
 #include <QGeoPositionInfoSource>
 #include <QWebSocket>
 
-class LocationService : public AndroidService
+class TrackLocationService : public AndroidService
 {
     Q_OBJECT
 private:
-    LocationService();
-    ~LocationService();
-    static LocationService *instance;
-    QGeoPositionInfoSource *source;
+    TrackLocationService();
+    ~TrackLocationService();
+    static TrackLocationService *instance;
 
     QWebSocket wsLocation;
+    QGeoPositionInfoSource *source;
 
 public:
     void ask_permissions() override;
@@ -25,9 +25,8 @@ public:
     void start_activity() override;
 
     std::string getServiceName() override;
-    bool is_service_active = false;
 
-    static LocationService *getInstance();
+    static TrackLocationService *getInstance();
 };
 
-#endif // LOCATION_SERVICE_H
+#endif // TRACK_LOCATION_SERVICE_H

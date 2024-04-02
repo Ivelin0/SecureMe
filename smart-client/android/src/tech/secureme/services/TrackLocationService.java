@@ -13,9 +13,8 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import org.qtproject.qt.android.bindings.QtService;
 import tech.secureme.R;
-import tech.secureme.services.TrackLocationService;
 
-public class LocationService extends QtService {
+public class TrackLocationService extends QtService {
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
@@ -23,7 +22,7 @@ public class LocationService extends QtService {
 
     Intent showTaskIntent = new Intent(
       getApplicationContext(),
-      LocationService.class
+      TrackLocationService.class
     );
     showTaskIntent.setAction(Intent.ACTION_MAIN);
     showTaskIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -68,13 +67,12 @@ public class LocationService extends QtService {
   }
 
   public static void serviceStart(final Context context) {
-    Intent serviceIntent = new Intent(context, LocationService.class);
+    Intent serviceIntent = new Intent(context, TrackLocationService.class);
     ContextCompat.startForegroundService(context, serviceIntent);
   }
 
   public static void serviceStop(final Context context) {
-    Intent serviceIntent = new Intent(context, LocationService.class);
+    Intent serviceIntent = new Intent(context, TrackLocationService.class);
     context.stopService(serviceIntent);
-    TrackLocationService.serviceStart(context);
   }
 }
