@@ -1,5 +1,5 @@
 import "./styles/global.css";
-import { Image, useDisclosure } from "@nextui-org/react";
+import { Accordion, AccordionItem, image } from "@nextui-org/react";
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -9,6 +9,8 @@ import { useContext, useEffect, useState } from "react";
 import { Location } from "./models/location.model";
 import { SocketContext } from "./contexts/WebSocket";
 import {} from "react-daisyui";
+import IncorrectPassword from "./components/functionalities/IncorrectPassword/IncorrectPassword";
+import useIncorrectPassowrd from "./components/functionalities/IncorrectPassword/useIncorrectPassword";
 const ICON = icon({
   iconUrl: "./mobiles.png",
   iconSize: [62, 62],
@@ -61,101 +63,48 @@ const App = (): JSX.Element => {
 
     startTrackingLocation();
   }, [webSocket]);
-
-  const [imagePaths, setImagePaths] = useState<string[]>([]);
-  const [index, setIndex] = useState<number>(0);
   const [currFcm, setFcm] = useState<string>("");
-  const retrieveImages = async (fcm_token: string) => {
-    const response = await fetch(`http://localhost:8000/images/${fcm_token}`, {
-      method: "GET",
-      credentials: "include",
-    }).then((res) => res.json());
-    setImagePaths(response.images);
-  };
 
-  const displayDate = (value: string) => {
-    const timestamp = value.slice(0, -4).split("-")[1];
-    console.log("timestamp", timestamp);
-    const date = new Date(parseInt(timestamp));
-    const formattedDate = date.toLocaleDateString("bg-BG", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
-    return formattedDate;
-  };
+  const { imagePaths, retrieveImages } = useIncorrectPassowrd();
 
   return (
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       {currFcm && (
         <div style={{ width: "30vw", background: "#ededed" }}>
           <h2 className="p-5">{locations![currFcm].full_brand}</h2>
-          <hr />
-          {imagePaths?.length ? (
-            <>
-              <h3 className="text-center">Снимка при сгрешена парола</h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                }}
-              >
-                {index > 0 ? (
-                  <button
-                    style={{
-                      border: "2px solid black",
-                      borderRadius: "20px",
-                      width: "40px",
-                      height: "40px",
-                    }}
-                    onClick={() => setIndex((prev) => prev - 1)}
-                  >
-                    {"<"}
-                  </button>
-                ) : (
-                  <></>
-                )}
+          <Accordion>
+            <AccordionItem
+              key="1"
+              aria-label="Accordion 1"
+              title="Сгрешени пароли"
+              style={{
+                borderTop: "2px solid black",
+              }}
+            >
+              <IncorrectPassword imagePaths={imagePaths} currFcm={currFcm} />
+            </AccordionItem>
+            <AccordionItem
+              key="2"
+              aria-label="Accordion 2"
+              title="Исотиря на включване"
+              style={{
+                borderTop: "2px solid black",
+                borderBottom: "2px solid black",
+              }}
+            ></AccordionItem>
 
-                <Image
-                  width={300}
-                  alt="NextUI hero Image"
-                  src={`http://localhost:8000/images/${currFcm}/${imagePaths[index]}`}
-                  onClick={() => {
-                    window.open(
-                      `http://localhost:8000/images/${currFcm}/${imagePaths[index]}`,
-                      "_blank"
-                    );
-                  }}
-                />
-
-                {index < imagePaths.length - 1 ? (
-                  <button
-                    style={{
-                      border: "2px solid black",
-                      borderRadius: "20px",
-                      width: "40px",
-                      height: "40px",
-                    }}
-                    onClick={() => setIndex((prev) => prev + 1)}
-                  >
-                    {">"}
-                  </button>
-                ) : (
-                  <h1></h1>
-                )}
-              </div>{" "}
-              <p className="text-center">
-                Дата на снимане: {displayDate(imagePaths[index])}
-              </p>
-            </>
-          ) : (
-            <p>Няма данни за сгрешени пароли вмомента</p>
-          )}
+            <AccordionItem
+              key="3"
+              aria-label="Accordion 3"
+              title="Исотиря на местоположение"
+              style={{
+                borderBottom: "2px solid black",
+              }}
+            ></AccordionItem>
+          </Accordion>
         </div>
       )}
+
       <MapContainer
         style={{
           height: "100vh",
