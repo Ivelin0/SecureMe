@@ -1,20 +1,12 @@
 import powerButtonLogo from "../assets/power-button-svgrepo-com.png";
 import LocationLogo from "../assets/location_icon.png";
 import incorrectPasswordLogo from "../assets/incorrect_password.png";
-import {
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  Link,
-  Button,
-  Image,
-} from "@nextui-org/react";
+import { Image } from "@nextui-org/react";
 import "../styles/functionalities.css";
 const Functionalities = () => {
   return (
     <>
-      <div className="functionalities text-center bg-gradient-to-r from-gray-200 to-cyan-200 p-10">
+      <div className="text-center bg-gradient-to-r from-gray-200 to-cyan-200 p-10">
         <h1>Защо SecureMe?</h1>
         <div className="flex sm:flex-row flex-col sm:gap-2 gap-10 justify-around w-full">
           <div className="flex justify-center items-center flex-col w[200]">
