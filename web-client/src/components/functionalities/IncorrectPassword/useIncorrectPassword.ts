@@ -1,11 +1,8 @@
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 
-const useIncorrectPassowrd = () => {
-  const [imagePaths, setImagePaths] = useState<string[]>([]);
-
+const useIncorrectPassowrd = ({ setImagePaths }) => {
   const displayDate = (value: string) => {
     const timestamp = value.slice(0, -4).split("-")[1];
-    console.log("timestamp", timestamp);
     const date = new Date(parseInt(timestamp));
     const formattedDate = date.toLocaleDateString("bg-BG", {
       day: "numeric",
@@ -24,7 +21,7 @@ const useIncorrectPassowrd = () => {
     setImagePaths(response.images);
   };
 
-  return { imagePaths, displayDate, retrieveImages };
+  return { displayDate, retrieveImages };
 };
 
 export default useIncorrectPassowrd;

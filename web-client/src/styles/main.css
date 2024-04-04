@@ -1,3 +1,7 @@
+body {
+    overflow-y: hidden;
+}
+
 .topInfo {
     background-color: #0093E9;
 background-image: linear-gradient(160deg, #0093E9 0%, #80D0C7 100%);
@@ -18,4 +22,40 @@ h1 {
 h2 {
     font-size: 40px;
     font-weight: bold;
+}
+
+.admin_panel {
+    display: flex;
+    justify-content: flex-end
+}
+
+.mapContainer {
+    height: 100vh;
+    width: 75vw;
+    z-index: 0;
+}
+
+.sidePanel {
+    width: 30vw;
+    background: #ededed;
+}
+
+.admin_panel {
+    overflow-y: hidden;
+}
+
+@media only screen and (max-width: 800px) {
+    .admin_panel {
+        flex-direction: column-reverse;
+    }
+
+    .mapContainer {
+        height: 70vh;
+        width: 100vw;
+    }
+    .sidePanel {
+        overflow-y: visible;
+        width: 100vw;
+        background: #ededed;
+    }
 }

@@ -8,13 +8,11 @@ import { Accordion, AccordionItem } from "@nextui-org/react";
 import "leaflet/dist/leaflet.css";
 
 import { useContext, useEffect, useState } from "react";
-import { Location } from "./models/location.model";
 import { SocketContext } from "./contexts/WebSocket";
 import {} from "react-daisyui";
 import LocationHistory from "./components/functionalities/LocationHistory/LocationHistory";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import useIncorrectPassowrd from "./components/functionalities/IncorrectPassword/useIncorrectPassword";
 import { DeviceCurrentLocation } from "./models/location.model";
 
 import IncorrectPassword from "./components/functionalities/IncorrectPassword/IncorrectPassword";
