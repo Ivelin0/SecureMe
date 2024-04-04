@@ -5,7 +5,7 @@ import { getTokens } from "./redis/redis.operations";
 import { STATUSES, Callback } from "../models/resources/callback.model";
 import { StatusCodes } from "http-status-codes";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import {User} from "../schemas/user.schema";
+import { User } from "../schemas/user.schema";
 
 export const parseQueryParams = (queryParams: string) => {
   const query = queryParams.split("&");
@@ -33,8 +33,8 @@ export const fcmNotify = async (
   userId: string
 ) => {
   (await getTokens(userId))
-  .map(({ fcm_token }) => fcm_token)
-  .filter((fcm_token) => fcm_token != null);
+    .map(({ fcm_token }) => fcm_token)
+    .filter((fcm_token) => fcm_token != null);
   const message: MulticastMessage = {
     data: {
       method: method,
@@ -76,10 +76,8 @@ export const fcmNotify = async (
 export const isAuthorized = async (request: any) => {
   const { headers } = request;
   const isAuthorized = headers?.cookie?.search("auth_token");
-
   if (isAuthorized && isAuthorized != -1) {
     const auth_token = headers?.cookie?.split("=")[1];
-
     const { data } = jwt.verify(auth_token, "secret") as JwtPayload;
     const isValid = await User.findOne({ username: data.username });
     return isValid;

@@ -16,7 +16,7 @@ const attachUserId = async (req: any): Promise<Error | Success> => {
   try {
     decoded_data = (await jwt.verify(
       auth_token as string,
-      String(process.env.JWT_LONGLIVED)
+      String(process.env.JWT_SECRET_KEY)
     )) as SecureMeJWT;
   } catch (e) {
     return {
@@ -36,7 +36,7 @@ const attachUserId = async (req: any): Promise<Error | Success> => {
 };
 
 export const authorizedHTTP = async (
-  req: any,
+  req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {

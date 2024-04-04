@@ -16,6 +16,12 @@ router.post(
 );
 
 router.post(
+  "/location_history",
+  [authorizedHTTP],
+  deviceController.location_history
+);
+
+router.post(
   "/incorrect_password",
   [authorizedHTTP, upload.single("image")],
   deviceController.incorrect_password

@@ -2,7 +2,7 @@ import express from "express";
 import { User } from "../schemas/user.schema";
 import jwt from "jsonwebtoken";
 import { addToken } from "../utility/redis/redis.operations";
-import { DeviceModel } from "../schemas/user.schema";
+import { DeviceModel, DeviceSchema } from "../schemas/user.schema";
 const register = async (req: express.Request, res: express.Response) => {
   const { username, password, fcm_token } = req.body;
 
@@ -27,7 +27,7 @@ const register = async (req: express.Request, res: express.Response) => {
   );
 
   if (fcm_token) {
-    let device: DeviceModel = { fcm_token: fcm_token };
+    let device: DeviceSchema = { fcm_token: fcm_token, locations: [] };
     user.devices.push(device);
 
     user.save();
@@ -54,11 +54,35 @@ const login = async (req: express.Request, res: express.Response) => {
     }
   );
   if (fcm_token) {
-    let device: DeviceModel = { fcm_token: fcm_token };
-    userExists.devices.push(device);
+    let device = new DeviceModel({ fcm_token: fcm_token });
+    const result = await User.aggregate([
+      { $match: { username: username } },
+      {
+        $lookup: {
+          from: "devices",
+          localField: "devices",
+          foreignField: "_id",
+          as: "devices",
+        },
+      },
+      { $unwind: "$devices" },
+      { $match: { "devices.fcm_token": fcm_token } },
+      {
+        $group: {
+          _id: "$_id",
+          username: { $first: "$username" },
+          devices: { $push: "$devices" },
+        },
+      },
+    ]);
 
-    userExists.save();
-    await addToken(username, { fcm_token });
+    if (result.length === 0) {
+      userExists.devices.push(device);
+      device.save();
+
+      userExists.save();
+      await addToken(username, { fcm_token });
+    }
   }
   res.status(200).send({ message: "success", auth_token });
 };

@@ -1,6 +1,5 @@
-import express, { Request, Response } from "express";
-import { Message } from "firebase-admin/lib/messaging/messaging-api";
-import * as admin from "firebase-admin";
+import { Request, Response } from "express";
+
 import { ws_smart_client } from "../server";
 import * as geolib from "geolib";
 import fs from "fs";
@@ -11,7 +10,13 @@ import { fcmNotify } from "../utility/helper";
 
 import { STATUSES, Callback } from "../models/resources/callback.model";
 import { StatusCodes } from "http-status-codes";
-import { User, Location, DeviceModel } from "../schemas/user.schema";
+import {
+  User,
+  Location,
+  DeviceModel,
+  DeviceSchema,
+  DeviceDocument,
+} from "../schemas/user.schema";
 
 export const locationHandler = async ({
   method,
@@ -26,7 +31,6 @@ export const locationHandler = async ({
       status: StatusCodes.SERVICE_UNAVAILABLE,
       message: "There are no attached devices to this account",
     };
-
   return await fcmNotify({ method, originalUrl }, userId);
 };
 
@@ -79,27 +83,62 @@ const track_location = async (req: any, res: Response) => {
 
     if (metersDiff >= Number(process.env.LOCATION_DIFFERENCE_ON_SAVE)) {
       const user = await User.findOne({ username: req.userId });
-      user?.devices
-        .find((device: DeviceModel) => device.fcm_token == fcm_token)
-        ?.locations!.push(
-          new Location({
-            latitude: latitude,
-            longitude: longitude,
-          })
-        );
+      const location = new Location({
+        latitude: latitude,
+        longitude: longitude,
+        timestamp: Date.now(),
+      });
+      await location.save();
+      const give: DeviceDocument | null = await DeviceModel.findOne({
+        fcm_token: fcm_token,
+      });
+
+      give?.locations!.push(location);
+      give?.save();
+
+      addToken(req.userId, {
+        fcm_token,
+        last_location: { latitude, longitude },
+      } as Device);
 
       user?.save();
     }
-  }
-
-  addToken(req.userId, {
-    fcm_token,
-    last_location: { latitude, longitude },
-  } as Device);
+  } else
+    addToken(req.userId, {
+      fcm_token,
+      last_location: { latitude, longitude },
+    } as Device);
 
   res.json({ message: "okay" });
 };
 
+const location_history = async (req: any, res: Response) => {
+  const { startDate, endDate, fcm } = req.body;
+
+  const device: DeviceSchema | null = await DeviceModel.findOne({
+    fcm_token: fcm,
+  });
+  if (!device?.locations) return;
+  const { locations } = device;
+  let start = 0,
+    end = 0;
+
+  // temporary O(N) solution for finding all dots inrange ; refactor this with BS log(N)
+  let isFirst = true;
+  for (let i = 0; i < locations.length; i++) {
+    let currDate = locations[i].timestamp;
+    if (currDate >= startDate && currDate <= endDate) {
+      if (isFirst) {
+        start = i;
+        isFirst = false;
+      }
+      end = i;
+    }
+  }
+
+  if (isFirst) res.json({ locations: [] });
+  else res.json({ locations: locations.splice(start, end + 1) });
+};
 const boot = (req: Request, res: Response) => {
   const { brand } = req.body;
 
@@ -113,6 +152,7 @@ const boot = (req: Request, res: Response) => {
 
 export default {
   incorrect_password,
+  location_history,
   track_location,
   retrieveImages,
   device_locations,
