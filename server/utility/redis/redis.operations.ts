@@ -1,5 +1,5 @@
-import { createClient } from "redis";
 import PQueue from "p-queue";
+import { createClient } from "redis";
 const queue = new PQueue({ concurrency: 1 });
 export const client = createClient();
 
@@ -12,7 +12,7 @@ export interface Device {
     latitude: number;
   };
 }
-export async function getTokens(userId: string) {
+export async function getMobileData(userId: string) {
   const result = await client.json.get(`user:${userId}`, {
     path: "$.tokens",
   });
@@ -20,10 +20,10 @@ export async function getTokens(userId: string) {
   return ((result && (result as string[])[0]) ?? []) as unknown as Device[];
 }
 
-export async function addToken(userId: string, tokenData: Device) {
+export async function addMobileData(userId: string, tokenData: Device) {
   await queue.add(async () => {
     const key = `user:${userId}`;
-    const tokens = await getTokens(userId);
+    const tokens = await getMobileData(userId);
 
     const isUnique = (tokens: any[], tokenData: Device): boolean => {
       return (
@@ -44,7 +44,7 @@ export async function addToken(userId: string, tokenData: Device) {
 }
 export async function removeToken(userId: string, fcm_token: string) {
   await queue.add(async () => {
-    const tokens: Device[] = await getTokens(userId);
+    const tokens: Device[] = await getMobileData(userId);
     const index = tokens
       .map(({ fcm_token }: any) => fcm_token)
       .indexOf(fcm_token);

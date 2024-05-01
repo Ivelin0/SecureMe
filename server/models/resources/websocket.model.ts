@@ -1,11 +1,14 @@
 import WebSocket from "ws";
+import { authData } from "./auth.model";
 
 export interface SmartClientWebSocket extends WebSocket {
-  userId: String;
-  fcm_token: String;
+  userId: string;
+  fcm_token: string;
+  authData: authData;
 }
 
 export interface WebClientWebSocket extends WebSocket {
-  userId?: String;
+  authData?: authData;
+
   isAlive?: boolean;
 }

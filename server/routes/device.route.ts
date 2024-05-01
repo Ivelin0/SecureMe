@@ -5,9 +5,9 @@ import upload from "../middlewares/upload.middleware";
 
 const router = express.Router();
 
-router.get("/locations", authorizedHTTP, deviceController.device_locations);
+router.get("/locations", authorizedHTTP, deviceController.startDeviceLocation);
 
-router.delete("/locations", deviceController.device_locations);
+router.delete("/locations", deviceController.startDeviceLocation);
 
 router.get("/images/:fcm_token", deviceController.retrieveImages);
 
@@ -15,22 +15,18 @@ router.post("/boot", [authorizedHTTP], deviceController.boot);
 
 router.get("/boot/:fcm_token", deviceController.bootHistory);
 
+router.post("/trackLocation", [authorizedHTTP], deviceController.trackLocation);
+
 router.post(
-  "/track_location",
+  "/locationHistory",
   [authorizedHTTP],
-  deviceController.track_location
+  deviceController.locationHistory
 );
 
 router.post(
-  "/location_history",
-  [authorizedHTTP],
-  deviceController.location_history
-);
-
-router.post(
-  "/incorrect_password",
+  "/incorrectPassword",
   [authorizedHTTP, upload.single("image")],
-  deviceController.incorrect_password
+  deviceController.incorrectPassword
 );
 
 export default router;

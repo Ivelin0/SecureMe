@@ -1,8 +1,10 @@
+import { Error, STATUSES, Success } from "../models/resources/callback.model";
+
+import { SecureMeJWT } from "../models/resources/jwt.model";
+import { authData } from "../models/resources/auth.model";
 import express from "express";
 import jwt from "jsonwebtoken";
 import statusCodes from "http-status-codes";
-import { STATUSES, Error, Success } from "../models/resources/callback.model";
-import { SecureMeJWT } from "../models/resources/jwt.model";
 
 const attachUserId = async (req: any): Promise<Error | Success> => {
   const auth_token = req.headers.authorization?.split(" ")[1];
@@ -26,8 +28,9 @@ const attachUserId = async (req: any): Promise<Error | Success> => {
     };
   }
   const { username }: any = decoded_data.data;
-  req.userId = username;
-  req.auth_token = auth_token;
+  const obj: authData = { userId: username, auth_token };
+  req.authData = obj;
+
   return {
     type: STATUSES.SUCCESS,
     status: statusCodes.OK,

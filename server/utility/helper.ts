@@ -1,11 +1,13 @@
-import express, { Request, Response } from "express";
-import { MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
 import * as admin from "firebase-admin";
-import { getTokens } from "./redis/redis.operations";
-import { STATUSES, Callback } from "../models/resources/callback.model";
-import { StatusCodes } from "http-status-codes";
+
+import { Callback, STATUSES } from "../models/resources/callback.model";
+import express, { Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+
+import { MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
+import { StatusCodes } from "http-status-codes";
 import { User } from "../schemas/user.schema";
+import { getMobileData } from "./redis/redis.operations";
 
 export const parseQueryParams = (queryParams: string) => {
   const query = queryParams.split("&");
@@ -25,21 +27,21 @@ export const parseQueryParams = (queryParams: string) => {
 interface fcmData {
   method: string;
   originalUrl: string;
-  file_path?: string;
+  brand?: string;
 }
 
-export const fcmNotify = async (
-  { method, originalUrl, file_path = "" }: fcmData,
+export const mobileNotify = async (
+  { method, originalUrl, brand = "" }: fcmData,
   userId: string
 ) => {
-  (await getTokens(userId))
+  (await getMobileData(userId))
     .map(({ fcm_token }) => fcm_token)
     .filter((fcm_token) => fcm_token != null);
   const message: MulticastMessage = {
     data: {
       method: method,
       route: originalUrl,
-      file_path,
+      brand,
     },
     android: {
       priority: "high",
@@ -49,7 +51,7 @@ export const fcmNotify = async (
         "apns-priority": "10",
       },
     },
-    tokens: (await getTokens(userId))
+    tokens: (await getMobileData(userId))
       .map(({ fcm_token }) => fcm_token)
       .filter((fcm_token) => fcm_token != null),
   };
