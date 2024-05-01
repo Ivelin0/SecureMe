@@ -1,23 +1,26 @@
-import express from "express";
+import * as admin from "firebase-admin";
+import * as dotenv from "dotenv";
+import * as redis from "redis";
+
 import { IncomingMessage, createServer } from "http";
-import { WebSocket, WebSocketServer } from "ws";
-import cors from "cors";
 import {
   SmartClientWebSocket,
   WebClientWebSocket,
 } from "./models/resources/websocket.model";
-import * as admin from "firebase-admin";
-import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
-import deviceRouter from "./routes/device.route";
-import userRouter from "./routes/user.route";
-import mongoose from "mongoose";
-import * as redis from "redis";
-import jwt from "jsonwebtoken";
+import { WebSocket, WebSocketServer } from "ws";
 import { authorizedHTTP, authorizedWS } from "./middlewares/auth.middleware";
-import { parseQueryParams, isAuthorized } from "./utility/helper";
-import { locationHandler } from "./controllers/device.controller";
+import { isAuthorized, parseQueryParams } from "./utility/helper";
+
 import SecureMeRequest from "./models/resources/request.model";
-import * as dotenv from "dotenv";
+import { authorizedRequest } from "./models/resources/auth.model";
+import cors from "cors";
+import deviceRouter from "./routes/device.route";
+import express from "express";
+import jwt from "jsonwebtoken";
+import { locationHandler } from "./controllers/device.controller";
+import mongoose from "mongoose";
+import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
+import userRouter from "./routes/user.route";
 
 dotenv.config();
 const path = require("path");
@@ -36,11 +39,13 @@ const server = createServer(app);
 
 app.use(
   cors({
-    origin: ["https://secureme.live"],
+    origin: [
+      process.env.CORS_ORIGIN_1 as string,
+      process.env.CORS_ORIGIN_2 as string,
+    ],
     credentials: true,
   })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -55,10 +60,10 @@ ws_smart_client.on(
   "connection",
   async function connection(
     ws: SmartClientWebSocket,
-    request: SecureMeRequest
+    request: authorizedRequest
   ) {
     await authorizedWS(request);
-    ws.userId = request.userId;
+    ws.authData = request.authData;
 
     ws.on("message", async (data: Buffer) => {
       let find: boolean = false;
@@ -78,7 +83,7 @@ ws_smart_client.on(
       if (!find)
         await locationHandler({
           method: "DELETE",
-          userId: ws.userId,
+          userId: ws.authData.userId,
           originalUrl: "/locations",
         });
     });
@@ -95,7 +100,7 @@ ws_web_client.on(
   async function connection(ws: WebClientWebSocket, request: SecureMeRequest) {
     ws.isAlive = true;
     await authorizedWS(request);
-    ws.userId = request.userId;
+    ws.authData = request.authData;
 
     ws.on("message", () => {
       ws.isAlive = true;
@@ -103,10 +108,8 @@ ws_web_client.on(
   }
 );
 
-ws_web_client.on("close", () => {});
-
 app.get("/ws-ticket", authorizedHTTP, (req: any, res: express.Response) => {
-  const username = req.userId;
+  const username = req.authData.userId;
 
   const auth_token = jwt.sign({ data: { username } }, "secret", {
     expiresIn: "24h",
@@ -124,7 +127,6 @@ app.get(
 );
 
 server.on("upgrade", function upgrade(request: express.Request, socket, head) {
-  console.log("trying to connect");
   if (!isAuthorized(request)) {
     socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
     socket.destroy();
@@ -134,14 +136,14 @@ server.on("upgrade", function upgrade(request: express.Request, socket, head) {
 
   const pathname = request?.url?.split("?")[0];
   const { auth_token, fcm_token } = parseQueryParams(request.url as string);
-  console.log(pathname);
-  if (pathname == "/smart_client")
+  if (pathname == "/smart_client") {
     ws_smart_client.handleUpgrade(request, socket, head, (ws) => {
       request.headers.authorization = `Bearer ${auth_token}`;
+
       (ws as SmartClientWebSocket).fcm_token = fcm_token;
       ws_smart_client.emit("connection", ws, request);
     });
-  else if (pathname == "/web_client")
+  } else if (pathname == "/web_client")
     ws_web_client.handleUpgrade(request, socket, head, (ws) => {
       request.headers.authorization = `Bearer ${auth_token}`;
       ws_web_client.emit("connection", ws, request);
@@ -154,7 +156,7 @@ const interval = setInterval(function ping() {
     if (ws.isAlive === false) {
       await locationHandler({
         method: "DELETE",
-        userId: ws.userId,
+        userId: ws?.authData?.userId!,
         originalUrl: "/locations",
       });
       return ws.terminate();

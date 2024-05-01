@@ -1,53 +1,88 @@
-import { Request, Response } from "express";
-
-import { ws_smart_client } from "../server";
-import * as geolib from "geolib";
-import fs from "fs";
-import path from "path";
-import { addToken, getTokens, Device } from "../utility/redis/redis.operations";
 import "dotenv/config";
-import { fcmNotify } from "../utility/helper";
+import "multer";
 
-import { STATUSES, Callback } from "../models/resources/callback.model";
-import { StatusCodes } from "http-status-codes";
+import * as geolib from "geolib";
+
+import { Callback, STATUSES } from "../models/resources/callback.model";
 import {
-  User,
-  Location,
+  Device,
+  addMobileData,
+  getMobileData,
+} from "../utility/redis/redis.operations";
+import {
+  DeviceDocument,
   DeviceModel,
   DeviceSchema,
-  DeviceDocument,
+  Location,
+  User,
 } from "../schemas/user.schema";
+import { Request, Response } from "express";
+import {
+  validateAuthMobileRequest,
+  validateAuthRequest,
+} from "../utility/validation";
+
+import MESSAGES from "../log_messages/messages.json";
+import { StatusCodes } from "http-status-codes";
+import { mobileNotify } from "../utility/helper";
+import fs from "fs";
+import path from "path";
 
 export const locationHandler = async ({
   method,
   userId,
   originalUrl,
-}: any): Promise<Callback> => {
-  const tokens = (await getTokens(userId)).filter((token) => token != null);
-
+}: {
+  method: string;
+  originalUrl: string;
+  userId: string;
+}): Promise<Callback> => {
+  const tokens = (await getMobileData(userId)).filter((token) => token != null);
   if (tokens.length === 0)
     return {
       type: STATUSES.ERROR,
       status: StatusCodes.SERVICE_UNAVAILABLE,
       message: "There are no attached devices to this account",
     };
-  return await fcmNotify({ method, originalUrl }, userId);
+  return await mobileNotify({ method, originalUrl }, userId);
 };
 
-const device_locations = async (req: any, res: Response) => {
+const startDeviceLocation = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
+    return;
+  }
   let result: Callback = await locationHandler({
     method: req.method,
-    userId: req.userId,
+    userId: req.authData.userId,
     originalUrl: req.originalUrl,
   });
   res.status(result.status).send({ message: result.message });
 };
 
-const incorrect_password = async (req: Request, res: Response) => {
+const incorrectPassword = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res.status(StatusCodes.BAD_REQUEST).send({ message: "The request" });
+    return;
+  }
+  const { brand } = req.body;
+  await mobileNotify(
+    { method: "POST", originalUrl: "/camera", brand },
+    req.authData.userId
+  );
+
   res.status(200).send({ message: "okay", file_path: req.file?.destination });
 };
 
-const retrieveImages = (req: any, res: any) => {
+const retrieveImages = (req: Request, res: Response) => {
+  if (!validateAuthMobileRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_MOBILE_REQUEST });
+    return;
+  }
   const directoryPath = path.join(
     __dirname,
     "..",
@@ -68,51 +103,62 @@ const retrieveImages = (req: any, res: any) => {
   });
 };
 
-const track_location = async (req: any, res: Response) => {
+const trackLocation = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
+    return;
+  }
+
   const { fcm_token, latitude, longitude } = req.body;
 
-  const device = (await getTokens(req.userId)).filter(
+  const device = (await getMobileData(req.authData.userId)).filter(
     (token) => token.fcm_token == fcm_token
   )[0];
 
-  if (device?.last_location) {
-    const metersDiff = geolib.getDistance(
-      { latitude, longitude },
-      device.last_location
-    );
-
-    if (metersDiff >= Number(process.env.LOCATION_DIFFERENCE_ON_SAVE)) {
-      const user = await User.findOne({ username: req.userId });
-      const location = new Location({
-        latitude: latitude,
-        longitude: longitude,
-        timestamp: Date.now(),
-      });
-      await location.save();
-      const give: DeviceDocument | null = await DeviceModel.findOne({
-        fcm_token: fcm_token,
-      });
-
-      give?.locations!.push(location);
-      give?.save();
-
-      addToken(req.userId, {
-        fcm_token,
-        last_location: { latitude, longitude },
-      } as Device);
-
-      user?.save();
-    }
-  } else
-    addToken(req.userId, {
+  if (!device?.last_location) {
+    addMobileData(req.authData.userId, {
       fcm_token,
       last_location: { latitude, longitude },
     } as Device);
 
+    res.json({ message: "okay" });
+    return;
+  }
+
+  const metersDiff = geolib.getDistance(
+    { latitude, longitude },
+    device.last_location
+  );
+
+  if (metersDiff >= Number(process.env.LOCATION_DIFFERENCE_ON_SAVE)) {
+    const user = await User.findOne({ username: req.authData.userId });
+    const location = new Location({
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: Date.now(),
+    });
+    await location.save();
+    const deviceDoc: DeviceDocument | null = await DeviceModel.findOne({
+      fcm_token: fcm_token,
+    });
+
+    deviceDoc?.locations!.push(location);
+    deviceDoc?.save();
+
+    addMobileData(req.authData.userId, {
+      fcm_token,
+      last_location: { latitude, longitude },
+    } as Device);
+
+    user?.save();
+  }
+
   res.json({ message: "okay" });
 };
 
-const location_history = async (req: any, res: Response) => {
+const locationHistory = async (req: Request, res: Response) => {
   const { startDate, endDate, fcm } = req.body;
 
   const device: DeviceSchema | null = await DeviceModel.findOne({
@@ -139,22 +185,46 @@ const location_history = async (req: any, res: Response) => {
   if (isFirst) res.json({ locations: [] });
   else res.json({ locations: locations.splice(start, end + 1) });
 };
-const boot = (req: Request, res: Response) => {
-  const { brand } = req.body;
 
-  ws_smart_client.clients.forEach(function each(client: any) {
-    if (client.id !== brand)
-      client.send(JSON.stringify({ event: "boot", message: brand }));
+const boot = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
+    return;
+  }
+  const { brand, fcm_token } = req.body;
+
+  const device: DeviceDocument | null = await DeviceModel.findOne({
+    fcm_token,
   });
+
+  device?.booted.push({ timestamp: Date.now() });
+  device?.save();
+
+  await mobileNotify(
+    { method: "POST", originalUrl: "/boot", brand },
+    req.authData.userId
+  );
 
   res.json({ message: "okay" });
 };
 
+const bootHistory = async (req: Request, res: Response) => {
+  const { fcm_token } = req.params;
+  const device: DeviceSchema | null = await DeviceModel.findOne({
+    fcm_token,
+  });
+
+  res.json({ message: device?.booted });
+};
+
 export default {
-  incorrect_password,
-  location_history,
-  track_location,
+  incorrectPassword,
+  locationHistory,
+  trackLocation,
   retrieveImages,
-  device_locations,
+  startDeviceLocation,
+  bootHistory,
   boot,
 };
