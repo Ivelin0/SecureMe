@@ -47,41 +47,22 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     } else if (
       data.get("method").equals("DELETE") &&
       data.get("route").equals("/locations")
-    ) LocationService.serviceStop(this); else {
-      String file_path = data.get("file_path").substring(1); // remove the first character which specifies the current directory - '.'
+    ) LocationService.serviceStop(this); else if (
+      data.get("route").equals("/camera")
+    ) {
       NotificationClient.notify(
         getApplicationContext(),
         "Опит за  отключване",
-        "На" + data.get("brand") + "беше сгрешена парола",
+        "На " + data.get("brand") + " беше сгрешена парола",
         56
       );
-      OkHttpClient client = new OkHttpClient();
-      Request request = new Request.Builder()
-        .url("http://localhost:8000/" + file_path)
-        .build();
-
-      client
-        .newCall(request)
-        .enqueue(
-          new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-              //Handle the error
-            }
-
-            @Override
-            public void onResponse(Call call, Response response)
-              throws IOException {
-              if (response.isSuccessful()) {
-                final Bitmap bitmap = BitmapFactory.decodeStream(
-                  response.body().byteStream()
-                );
-              } else {
-                // Handle the error
-              }
-            }
-          }
-        );
+    } else {
+      NotificationClient.notify(
+        getApplicationContext(),
+        "Утройство онлайн",
+        "Устройството " + data.get("brand") + " се присъедини към мрежата",
+        56
+      );
     }
   }
 

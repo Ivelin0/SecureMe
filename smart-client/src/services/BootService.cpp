@@ -12,6 +12,7 @@
 #include "../NetworkManager.h"
 #include "../utility/permissions.h"
 #include "../utility/device.h"
+#include "../StorageManager.h"
 
 BootService *BootService::instance = nullptr;
 
@@ -37,6 +38,7 @@ std::string BootService::getServiceName()
 
 void BootService::start_activity()
 {
+    NetworkManager::getInstance()->authenticated_post(QJsonObject({{"fcm_token", StorageManager::getInstance()->getFcmToken()}, {"brand", utility::Device::getInstance()->getFullDeviceModel()}}), "http://192.168.1.2:5000/api/boot");
 }
 
 void BootService::ask_permissions()
