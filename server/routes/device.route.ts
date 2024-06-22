@@ -9,13 +9,21 @@ router.get("/locations", authorizedHTTP, deviceController.startDeviceLocation);
 
 router.delete("/locations", deviceController.startDeviceLocation);
 
-router.get("/images/:fcm_token", deviceController.retrieveImages);
+router.get("/last_locations", [authorizedHTTP], deviceController.lastLocations);
+
+router.get(
+  "/images/:fcm_token",
+  [authorizedHTTP],
+  deviceController.retrieveImages
+);
 
 router.post("/boot", [authorizedHTTP], deviceController.boot);
 
 router.get("/boot/:fcm_token", deviceController.bootHistory);
 
 router.post("/trackLocation", [authorizedHTTP], deviceController.trackLocation);
+
+router.get("/devices", [authorizedHTTP], deviceController.devices);
 
 router.post(
   "/locationHistory",

@@ -27,6 +27,7 @@ import { StatusCodes } from "http-status-codes";
 import { mobileNotify } from "../utility/helper";
 import fs from "fs";
 import path from "path";
+import { UserDevices } from "../schemas/user.schema";
 
 export const locationHandler = async ({
   method,
@@ -116,7 +117,6 @@ const trackLocation = async (req: Request, res: Response) => {
   const device = (await getMobileData(req.authData.userId)).filter(
     (token) => token.fcm_token == fcm_token
   )[0];
-
   if (!device?.last_location) {
     addMobileData(req.authData.userId, {
       fcm_token,
@@ -146,7 +146,6 @@ const trackLocation = async (req: Request, res: Response) => {
 
     deviceDoc?.locations!.push(location);
     deviceDoc?.save();
-
     addMobileData(req.authData.userId, {
       fcm_token,
       last_location: { latitude, longitude },
@@ -156,6 +155,52 @@ const trackLocation = async (req: Request, res: Response) => {
   }
 
   res.json({ message: "okay" });
+};
+
+const lastLocations = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
+    return;
+  }
+
+  const lastLocations = (await getMobileData(req.authData.userId)).map(
+    (device) => ({ fcm_token: device.fcm_token, ...device?.last_location })
+  );
+
+  res.json({ message: lastLocations });
+};
+
+const devices = async (req: Request, res: Response) => {
+  if (!validateAuthRequest(req)) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
+    return;
+  }
+  const result = await User.aggregate([
+    { $match: { username: req.authData.userId } },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "devices",
+        foreignField: "_id",
+        as: "devices",
+      },
+    },
+    { $unwind: "$devices" },
+    {
+      $group: {
+        _id: "$_id",
+        devices: { $push: "$devices" },
+      },
+    },
+  ])[0];
+
+  res.json({
+    message: (result?.devices ?? []).map((res: DeviceSchema) => res.full_model),
+  });
 };
 
 const locationHistory = async (req: Request, res: Response) => {
@@ -223,8 +268,10 @@ export default {
   incorrectPassword,
   locationHistory,
   trackLocation,
+  lastLocations,
   retrieveImages,
   startDeviceLocation,
   bootHistory,
+  devices,
   boot,
 };

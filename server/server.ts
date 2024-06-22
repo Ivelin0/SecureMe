@@ -18,9 +18,10 @@ import deviceRouter from "./routes/device.route";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { locationHandler } from "./controllers/device.controller";
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import serviceAccount from "./me-3d1ec-firebase-adminsdk-juyzr-dfbbe13ca9.json";
 import userRouter from "./routes/user.route";
+import { Device, addMobileData } from "./utility/redis/redis.operations";
 
 dotenv.config();
 const path = require("path");
@@ -46,6 +47,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -67,10 +69,16 @@ ws_smart_client.on(
 
     ws.on("message", async (data: Buffer) => {
       let find: boolean = false;
-      ws_web_client.clients.forEach((client: any) => {
-        if (client.userId != ws.userId) return;
+      ws_web_client.clients.forEach((web_client: any) => {
+        if (web_client.authData.userId != ws.authData.userId) return;
         find = true;
-        client.send(
+
+        addMobileData(ws.authData.userId, {
+          fcm_token: ws.fcm_token,
+          last_location: JSON.parse(data.toString()),
+        } as Device);
+
+        web_client.send(
           JSON.stringify({
             event: "locations",
             message: {

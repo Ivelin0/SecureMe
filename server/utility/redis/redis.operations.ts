@@ -36,9 +36,11 @@ export async function addMobileData(userId: string, tokenData: Device) {
     } else if (isUnique(tokens, tokenData)) {
       await client.json.arrAppend(key, "$.tokens", tokenData as {});
     } else {
-      removeToken(userId, tokenData.fcm_token).then(async () => {
-        await client.json.set(key, "$", { tokens: [tokenData as {}] });
-      });
+      const userToken = tokens
+        .map(({ fcm_token }) => fcm_token)
+        .indexOf(tokenData.fcm_token);
+      tokens[userToken] = tokenData;
+      await client.json.set(key, "$.tokens", tokens as {});
     }
   });
 }

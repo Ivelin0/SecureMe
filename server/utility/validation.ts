@@ -12,5 +12,8 @@ export function validateAuthRequest(req: Request): req is authorizedRequest {
 export function validateAuthMobileRequest(
   req: Request
 ): req is authorizedMobileRequest {
-  return (req as any).authData?.fcm_token !== undefined;
+  return (
+    (req as any).authData?.fcm_token !== undefined ||
+    (req as any).params?.fcm_token !== undefined
+  );
 }

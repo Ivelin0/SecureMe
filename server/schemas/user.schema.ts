@@ -15,6 +15,7 @@ export interface DeviceSchema {
   fcm_token: string;
   locations: Location[];
   booted: Boot[];
+  full_model: string;
 }
 
 export type DeviceDocument = (Document & DeviceSchema) | null;
@@ -38,7 +39,13 @@ const deviceSchema = new Schema<DeviceSchema>({
   fcm_token: { type: String, unique: true },
   locations: [{ type: locationSchema, default: [] }],
   booted: [{ type: bootSchema, default: [] }],
+  full_model: { type: String, default: "unknown" },
 });
+
+export interface UserDevices {
+  _id: string;
+  devices: DeviceSchema[];
+}
 
 const userSchema = new Schema<User>({
   username: { type: String, unique: true, required: true },
