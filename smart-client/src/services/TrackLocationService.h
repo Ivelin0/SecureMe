@@ -15,6 +15,8 @@ private:
     ~TrackLocationService();
     static TrackLocationService *instance;
 
+    bool onGoing = false;
+
     QWebSocket wsLocation;
     QGeoPositionInfoSource *source;
 

@@ -6,6 +6,7 @@
 #include "../NetworkManager.h"
 #include "LocationService.h"
 #include "../StorageManager.h"
+#include "../Config.h"
 TrackLocationService *TrackLocationService::instance = nullptr;
 
 TrackLocationService::TrackLocationService() : source(QGeoPositionInfoSource::createDefaultSource(this))
@@ -40,18 +41,26 @@ void TrackLocationService::start_activity()
     QTimer *timer = new QTimer(this);
 
     QObject::connect(timer, &QTimer::timeout, [this]()
-                     { if(!LocationService::getInstance()->is_service_active) source->startUpdates(); });
+                     {
+                         if (!LocationService::getInstance()->is_service_active && !onGoing) {
+                            {
+                             source->startUpdates();
+                             onGoing = true;
+                            }
 
-    timer->start(20000);
+                         } });
+
+    timer->start(5000);
 
     QObject::connect(source, &QGeoPositionInfoSource::positionUpdated, [this](const QGeoPositionInfo &update)
                      { 
-            NetworkManager::getInstance()->authenticated_post(QJsonObject({{"longitude", update.coordinate().latitude()}, 
-            {"latitude", update.coordinate().longitude()},
+            NetworkManager::getInstance()->authenticated_post(QJsonObject({{"latitude", update.coordinate().latitude()}, 
+            {"longitude", update.coordinate().longitude()},
             {"prev_longitude", source->lastKnownPosition().coordinate().longitude()},
             {"prev_latitude", source->lastKnownPosition().coordinate().latitude()},
-            {"fcm_token", StorageManager::getInstance()->getFcmToken()}}), "https://secureme.live/api/track_location");
-                        source->stopUpdates(); });
+            {"fcm_token", StorageManager::getInstance()->getFcmToken()}}), QString::fromStdString(Config::getInstance()->serverUrl) + "/api/trackLocation");
+                        source->stopUpdates(); 
+                        onGoing = false; });
 }
 
 void TrackLocationService::start_service()
