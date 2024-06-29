@@ -10,6 +10,10 @@
 #include <QNetworkCookieJar>
 #include "StorageManager.h"
 #include "NotificationManager.h"
+#include <QJSEngine>
+#include <QQmlEngine>
+#include <QJSValue>
+#include <QJsonArray>
 
 NetworkManager::NetworkManager()
 {
@@ -48,7 +52,29 @@ void NetworkManager::post(QJsonObject json, const QString &urlPath)
 
     reply = manager->post(request, jsonData);
 
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest);
+    NotificationClient::getInstance()->setNotification("123", "testing");
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest1);
+}
+
+void NetworkManager::post(QJsonObject json, const QString &urlPath, QJSValue callback)
+{
+    QObject::connect(manager, &QNetworkAccessManager::finished,
+                     []() {
+
+                     });
+    QJsonDocument jsonDoc(json);
+    QByteArray jsonData = jsonDoc.toJson();
+
+    const QUrl url = QUrl(urlPath);
+    QNetworkRequest request(url);
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+
+    reply = manager->post(request, jsonData);
+    NotificationClient::getInstance()->setNotification("SecureMe", "notify");
+    connect(reply, &QNetworkReply::finished, this, [this, callback]()
+            { handleRequest(callback); });
 }
 
 void NetworkManager::authenticated_get(const QString &urlPath)
@@ -60,7 +86,20 @@ void NetworkManager::authenticated_get(const QString &urlPath)
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
 
     reply = manager->get(request);
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest);
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest1);
+}
+
+void NetworkManager::authenticated_get(const QString &urlPath, QJSValue callback)
+{
+    attachCookie(manager, urlPath);
+
+    const QUrl url = QUrl(urlPath);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+
+    reply = manager->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, callback]()
+            { handleRequest(callback); });
 }
 
 void NetworkManager::attachCookie(QNetworkAccessManager *manager, const QString &url)
@@ -84,7 +123,7 @@ void NetworkManager::authenticated_post(QJsonObject json, const QString &urlPath
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
 
     reply = manager->post(request, jsonData);
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest);
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest1);
 }
 
 void NetworkManager::authenticated_post(std::vector<QHttpPart> httpParts, const QString &urlPath)
@@ -100,10 +139,25 @@ void NetworkManager::authenticated_post(std::vector<QHttpPart> httpParts, const 
     QNetworkRequest request(url);
 
     reply = manager->post(request, multiPart);
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest);
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::handleRequest1);
 }
 
-void NetworkManager::handleRequest()
+void NetworkManager::handleRequest(const QJSValue &callback)
+{
+    reply->deleteLater();
+    QByteArray responseData = reply->readAll();
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    bool isError = !(statusCode.toInt() >= 200 && statusCode.toInt() <= 299);
+
+    QVariant variant(responseData);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+
+    callback.call({QJSValue(QString::fromUtf8(responseData)), isError});
+
+    emit operationFinished(jsonDoc, isError);
+}
+
+void NetworkManager::handleRequest1()
 {
     reply->deleteLater();
     QByteArray responseData = reply->readAll();
@@ -111,7 +165,6 @@ void NetworkManager::handleRequest()
     bool isError = !(statusCode.toInt() >= 200 && statusCode.toInt() <= 299);
 
     QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
-
     emit operationFinished(jsonDoc, isError);
 }
 

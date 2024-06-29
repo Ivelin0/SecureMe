@@ -7,7 +7,8 @@
 #include <QJsonDocument>
 #include <QHttpPart>
 #include <vector>
-
+#include <QJSValue>
+#include <string>
 #include <QNetworkAccessManager>
 
 class NetworkManager : public QObject
@@ -28,14 +29,17 @@ signals:
     void operationFinished(QJsonDocument responseData, bool isError);
 
 public slots:
-    void handleRequest();
+    void handleRequest(const QJSValue &callback);
+    void handleRequest1();
 
 public:
     Q_INVOKABLE void post(QJsonObject json, const QString &url);
+    Q_INVOKABLE void post(QJsonObject json, const QString &url, QJSValue callback);
     Q_INVOKABLE void authenticated_post(QJsonObject, const QString &url);
     Q_INVOKABLE void authenticated_post(std::vector<QHttpPart>, const QString &url);
     Q_INVOKABLE void get(const QString &url);
     Q_INVOKABLE void authenticated_get(const QString &url);
+    Q_INVOKABLE void authenticated_get(const QString &url, QJSValue callback);
     Q_INVOKABLE QString convertToJsonString(const QVariant &variant);
 
     static NetworkManager *getInstance();
