@@ -14,6 +14,7 @@
 #include "../utility/device.h"
 #include "../utility/permissions.h"
 #include "../StorageManager.h"
+#include "../Config.h"
 
 CameraService *CameraService::instance = nullptr;
 
@@ -62,7 +63,7 @@ void CameraService::start_activity()
                          brand.setBody(utility::Device::getInstance()->getFullDeviceModel().toUtf8());
 
 
-                         NetworkManager::getInstance()->authenticated_post(std::vector<QHttpPart>{fcm_token, brand, imagePart}, "http://secureme.live/api/incorrect_password");
+                         NetworkManager::getInstance()->authenticated_post(std::vector<QHttpPart>{fcm_token, brand, imagePart}, QString::fromStdString(Config::getInstance()->serverUrl + "/api/incorrectPassword"));
 
                         QObject::connect(NetworkManager::getInstance(), &NetworkManager::operationFinished, [this](QJsonDocument responseData, bool isError){
                             stop_service();

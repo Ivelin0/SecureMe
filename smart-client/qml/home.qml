@@ -3,25 +3,26 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Window
 import Qt.labs.settings
+import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Controls.Material
+import QtQuick.Controls.Material.impl
 
 ApplicationWindow {
     id: appWindow
     minimumWidth: 480
     minimumHeight: 960
 
+    Material.accent: Material.Cyan
+
     flags: Qt.Window
     color: "white"
     visible: true
 
     property string cameraOption: "camera"
-    property string locationOption: "camera"
-    property string bootOption: "camera"
-
-    Loader {
-       id: componentLoader
-       anchors.centerIn: parent
-
-    }
+    property string locationOption: "location_service"
+    property string trackLocationOption: "track_location_service"
+    property string bootOption: "boot_service"
 
     Rectangle {
         id: topRect
@@ -51,7 +52,6 @@ ApplicationWindow {
             anchors.fill: parent
                 onClicked: {
                     storageManager.attachAuthToken("");
-                    console.log(storageManager.getAuthToken());
                     componentLoader.source = "main.qml"
                 }
             }
@@ -70,7 +70,7 @@ ApplicationWindow {
             CheckBox {
                 id: locationBox
                 anchors.verticalCenter: parent.verticalCenter
-                checked: true
+                checked: storageManager.getSettingSwitch(locationOption)
                 onClicked: storageManager.switchSetting(locationOption)
 
             }
@@ -85,6 +85,7 @@ ApplicationWindow {
 
                 Text {
                     text: "При влизане в админ панела за октриване на съотвентото устройство ще се включи локацията на телефона, за да се проследи."
+                    width: appWindow.width-locationBox.width
                     wrapMode: Text.WordWrap
                 }
             }
@@ -110,6 +111,8 @@ ApplicationWindow {
 
                 Text {
                     text: "При включване на текущото устройство всички навързани устройства ще бъдат известявани."
+                    width: appWindow.width-bootBox.width
+
                     wrapMode: Text.WordWrap
                 }
             }
@@ -135,9 +138,37 @@ ApplicationWindow {
 
                 Text {
                     text: "При грешене на паролата на текущото устройство всички навързани устройства ще бъдат."
+                    width: appWindow.width-incorrectPasswordBox.width
                     wrapMode: Text.WordWrap
                 }
             }
         }
+
+        Row {
+            spacing: 10
+
+            CheckBox {
+                id: locationTrackBox
+                anchors.verticalCenter: parent.verticalCenter
+                checked: storageManager.getSettingSwitch(trackLocationOption)
+                onClicked: storageManager.switchSetting(trackLocationOption)
+            }
+
+            Column {
+                spacing: 2
+
+                Text {
+                    text: "Запазване на история при локация"
+                    font.bold: true
+                }
+
+                Text {
+                    text: "През 5 минути се запазва текущата ви локация, в случай че сте в движение. Това може да се провери от админ панела."
+                    width: appWindow.width-locationTrackBox.width
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+
     }
 }

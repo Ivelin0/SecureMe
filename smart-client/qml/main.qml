@@ -8,13 +8,11 @@ import QtQuick.Controls.Material 2.5
 ApplicationWindow {
     width: 640
     height: 480
-    visible: true
+    visible: false
     font.family: "Montserrat"
 
     Material.theme: Material.Light
     Material.accent: "#001b2a"
-
-    property string currentComponent: "Auth.qml"
 
     Loader {
        id: componentLoader
@@ -22,33 +20,15 @@ ApplicationWindow {
 
     }
 
-     function onLoa() {
+    Component.onCompleted: function() {
+        networkManager.authenticated_get(serverUrl + "/api/authenticate", (data, isError) => {  
+                const {auth_token} = JSON.parse(data);
 
-     }
-    Component.onCompleted: {
-        console.log('REQUESTED SENDED REQUESTED SENDED REQUESTED SENDED REQUESTED SENDED REQUESTED SENDED');
-         networkManager.authenticated_get("https://secureme.live/api/authenticate");
-    }
-
-
-    Connections {
-        target: networkManager
-                        ignoreUnknownSignals: true
-
-
-        function onOperationFinished(responseData, isError) {
-        console.log(responseData);
-            var json = JSON.parse(networkManager.convertToJsonString(responseData));
-
-            if(isError) {
-               componentLoader.source = "Auth.qml"
-               return;
-            }
-            console.log(json.auth_token);
-            storageManager.attachAuthToken(json.auth_token);
-            console.log(storageManager.getAuthToken());
-            componentLoader.source = "home.qml"
-            
-        }
+                if(isError) {
+                    componentLoader.source = "Auth.qml"
+                } else {
+                    componentLoader.source = "home.qml"
+                }
+        });
     }
 }
