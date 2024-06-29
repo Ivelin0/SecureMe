@@ -28,7 +28,8 @@
 #include <jni.h>
 #include "utility/device.h"
 #include "services/TrackLocationService.h"
-
+#include <QJsonDocument>
+#include "Config.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -56,9 +57,12 @@ extern "C"
 
 int main(int argc, char *argv[])
 {
+    Config::getInstance()->Log();
 #if defined(Q_OS_ANDROID)
     std::vector<AndroidService *> services{
         BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance(), TrackLocationService::getInstance()};
+
+    std::vector<AndroidService *> initial_serivces{TrackLocationService::getInstance()};
     for (int i = 1; i < argc; i++)
     {
         for (size_t j = 0; j < services.size(); j++)
@@ -73,6 +77,7 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+
     QGuiApplication app(argc, argv, true);
 
     QQmlApplicationEngine engine;
@@ -80,21 +85,20 @@ int main(int argc, char *argv[])
 
     engine_context->setContextProperty("networkManager", NetworkManager::getInstance());
     engine_context->setContextProperty("storageManager", StorageManager::getInstance());
+    engine_context->setContextProperty("serverUrl", QString::fromStdString(Config::getInstance()->serverUrl));
     engine_context->setContextProperty("device", utility::Device::getInstance());
 
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    if (engine.rootObjects().isEmpty())
-    {
-        qWarning() << "Cannot init QmlApplicationEngine!";
-        return EXIT_FAILURE;
-    }
 
 #if defined(Q_OS_ANDROID)
     QNativeInterface::QAndroidApplication::hideSplashScreen(555);
 
     for (size_t i = 0; i < services.size(); i++)
         services[i]->ask_permissions();
+
+    for (size_t i = 0; i < initial_serivces.size(); i++)
+        initial_serivces[i]->start_service();
+
 #endif
 
     return app.exec();
