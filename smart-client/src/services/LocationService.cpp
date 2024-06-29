@@ -37,6 +37,8 @@ LocationService::LocationService() : AndroidService()
 {
 }
 
+#include <QString>
+
 std::string LocationService::getServiceName()
 {
     return "location_service";
@@ -70,11 +72,9 @@ void LocationService::start_activity()
                              QJsonObject json;
 
                              json["event"] = "location";
-                             json["latittude"] = latitude;
+                             json["latitude"] = latitude;
                              json["longitude"] = longitude;
                              json["full_brand"] = utility::Device::getInstance()->getFullDeviceModel();
-
-                             NotificationClient::getInstance()->setNotification("Locations", QString::number(latitude) + " " + QString::number(longitude));
 
                              QJsonDocument jsonDoc(json);
 
@@ -84,8 +84,6 @@ void LocationService::start_activity()
 
     QObject::connect(source, &QGeoPositionInfoSource::errorOccurred, [](QGeoPositionInfoSource::Error positioningError)
                      { NotificationClient::getInstance()->setNotification("Error", QString::number(positioningError)); });
-
-    source->setUpdateInterval(10000);
 
     QObject::connect(
         thread, &QThread::started, [&source]()
@@ -100,11 +98,14 @@ void LocationService::start_activity()
     url.setQuery(query.query());
 
     QNetworkRequest request(url);
-    QObject::connect(&wsLocation, &QWebSocket::disconnected, [this]()
+    QObject::connect(&wsLocation, &QWebSocket::disconnected, [this, thread]()
                      {
         NotificationClient::getInstance()->setNotification("DISCONNECT", "DISCONNECTED");
-
+        thread->exit();
         stop_service(); });
+
+    QObject::connect(&wsLocation, &QWebSocket::errorOccurred, [](QAbstractSocket::SocketError webErrors)
+                     { NotificationClient::getInstance()->setNotification("Errors", QString::number(webErrors)); });
 
     request.setRawHeader("Cookie", QString("auth_token=" + StorageManager::getInstance()->getAuthToken() + ";").toUtf8());
     wsLocation.open(request);
