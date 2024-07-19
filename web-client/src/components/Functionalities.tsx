@@ -6,9 +6,9 @@ import "../styles/functionalities.css";
 const Functionalities = () => {
   return (
     <>
-      <div className="text-center bg-gradient-to-r from-gray-200 to-cyan-200 p-10">
+      <div className="functionalities text-center bg-gradient-to-r from-gray-200 to-cyan-200 p-10">
         <h1>Защо SecureMe?</h1>
-        <div className="flex sm:flex-row flex-col sm:gap-2 gap-10 justify-around w-full">
+        <div className="flex sm:flex-row flex-col sm:gap-2 gap-10 justify-around h-200">
           <div className="flex justify-center items-center flex-col w[200]">
             <Image src={powerButtonLogo} width={200} />
             <h1 className="font-bold text-4xl">Стартиране</h1>
