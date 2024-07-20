@@ -1,49 +1,26 @@
 import {
-  Modal,
-  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Button,
-  useDisclosure,
   Checkbox,
   Input,
   Link,
 } from "@nextui-org/react";
-import { MailIcon } from "./MailIcon";
-import { LockIcon } from "./LockIcon";
-import { useState } from "react";
-import { SignIn } from "../models/auth.model";
-import { AuthComponent, SignUp } from "../models/auth.model";
-import { useNavigate } from "react-router-dom";
+import { MailIcon } from "../../MailIcon";
+import { EyeFilledIcon } from "../../icons/EyeFilledIcon";
+import { EyeSlashFilledIcon } from "../../icons/EyeSlashFilledIcon";
+import { AuthComponent } from "../../../models/auth.model";
+import useSignIn from "./useSignIn";
 
 const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
-  const navigate = useNavigate();
-
-  const [data, setData] = useState<SignUp>({
-    username: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
-    const { password, confirmPassword } = data;
-    if (password != confirmPassword) {
-    }
-    const response = await fetch(
-      `${process.env.REACT_APP_HTTP_PROXY_SERVER}/login`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    ).then((res) => res.json());
-
-    navigate("/admin_panel");
-  };
+  const {
+    errorMessage,
+    isPasswordVisible,
+    togglePasswordVisibility,
+    handleSubmit,
+    changeData,
+  } = useSignIn();
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -56,30 +33,44 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
               label: "bg-transparent",
             }}
             onChange={(event) => {
-              setData({ ...data, username: event.target.value });
+              changeData({ username: event.target.value });
             }}
             endContent={
               <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
             }
-            label="Username"
-            placeholder="Enter your email"
+            label="Потребителско име"
+            placeholder="Въведи потребителско име"
             variant="underlined"
+            errorMessage=""
           />
           <Input
             required
             onChange={(event) => {
-              setData({ ...data, password: event.target.value });
+              changeData({ password: event.target.value });
             }}
             classNames={{
               label: "bg-transparent",
             }}
             endContent={
-              <LockIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={togglePasswordVisibility}
+                aria-label="toggle password visibility"
+              >
+                {" "}
+                {isPasswordVisible ? (
+                  <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                ) : (
+                  <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                )}
+              </button>
             }
-            label="Password"
-            placeholder="Enter your password"
-            type="password"
+            label="Парола"
+            placeholder="Въведи парола"
+            type={isPasswordVisible ? "text" : "password"}
             variant="underlined"
+            errorMessage={errorMessage}
           />
 
           <div className="flex py-2 px-1 justify-between">
@@ -89,10 +80,10 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
                 label: "text-small",
               }}
             >
-              Remember me
+              Запомни ме
             </Checkbox>
             <Link color="primary" href="#" size="sm">
-              Forgot password?
+              Забравена парола?
             </Link>
           </div>
           <Link
@@ -110,10 +101,10 @@ const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
               onClose();
             }}
           >
-            Close
+            Затвори
           </Button>
           <Button type="submit" color="primary">
-            Sign In
+            Влез
           </Button>
         </ModalFooter>
       </form>

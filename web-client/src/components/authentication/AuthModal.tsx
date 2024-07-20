@@ -1,10 +1,7 @@
-import {
-  Modal,
-  ModalContent,
-} from "@nextui-org/react";
+import { Modal, ModalContent } from "@nextui-org/react";
 import { useState } from "react";
-import SignInModal from "./SignInModal";
-import SignUpModal from "./SignUpModal";
+import SignInModal from "./SignIn/SignInModal";
+import SignUpModal from "./SignUp/SignUpModal";
 const AuthModal = ({ isOpen, onOpenChange }: any) => {
   const [isSignIn, setSignIn] = useState<boolean>(true);
 
@@ -15,7 +12,7 @@ const AuthModal = ({ isOpen, onOpenChange }: any) => {
         onOpenChange={onOpenChange}
         placement="top-center"
         backdrop="blur"
-        size="md"
+        size="3xl"
       >
         <ModalContent>
           {(onClose) => (
