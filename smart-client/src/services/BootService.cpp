@@ -39,7 +39,7 @@ std::string BootService::getServiceName()
 
 void BootService::start_activity()
 {
-    NetworkManager::getInstance()->authenticated_post(QJsonObject({{"fcm_token", StorageManager::getInstance()->getFcmToken()}, {"brand", utility::Device::getInstance()->getFullDeviceModel()}}), QString::fromStdString(Config::getInstance()->serverUrl) + "/api/boot");
+    NetworkManager::getInstance()->authenticated_post(QJsonObject({{"fcm_token", StorageManager::getInstance()->getFcmToken()}, {"brand", utility::Device::getInstance()->getFullDeviceModel()}}), QString::fromStdString(Config::getInstance()->httpServerUrl) + "/api/boot");
 }
 
 void BootService::ask_permissions()

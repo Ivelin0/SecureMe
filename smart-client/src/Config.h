@@ -7,8 +7,9 @@
 
 #define CONFIG_PATH "/src:/config.json"
 
-#define CONFIG_SETTINGS_LIST(MACRO) \
-    MACRO(std::string, serverUrl, "default")
+#define CONFIG_SETTINGS_LIST(MACRO)              \
+    MACRO(std::string, httpServerUrl, "default") \
+    MACRO(std::string, wsServerUrl, "default")
 
 #define CONFIG_SETTINGS_DECLARE(TYPE, NAME, DEFAULT) TYPE NAME = DEFAULT;
 

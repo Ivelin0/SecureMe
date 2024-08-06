@@ -38,6 +38,7 @@ LocationService::LocationService() : AndroidService()
 }
 
 #include <QString>
+#include "../Config.h"
 
 std::string LocationService::getServiceName()
 {
@@ -89,7 +90,7 @@ void LocationService::start_activity()
         thread, &QThread::started, [&source]()
         { source->startUpdates(); });
 
-    QUrl url(QString("wss://secureme.live/api/smart_client"));
+    QUrl url(QString::fromStdString(Config::getInstance()->wsServerUrl + "/api/smart_client"));
     QUrlQuery query;
 
     query.addQueryItem("auth_token", StorageManager::getInstance()->getAuthToken());

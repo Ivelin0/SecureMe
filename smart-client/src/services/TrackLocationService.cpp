@@ -58,7 +58,7 @@ void TrackLocationService::start_activity()
             {"longitude", update.coordinate().longitude()},
             {"prev_longitude", source->lastKnownPosition().coordinate().longitude()},
             {"prev_latitude", source->lastKnownPosition().coordinate().latitude()},
-            {"fcm_token", StorageManager::getInstance()->getFcmToken()}}), QString::fromStdString(Config::getInstance()->serverUrl) + "/api/trackLocation");
+            {"fcm_token", StorageManager::getInstance()->getFcmToken()}}), QString::fromStdString(Config::getInstance()->httpServerUrl) + "/api/trackLocation");
                         source->stopUpdates(); 
                         onGoing = false; });
 }

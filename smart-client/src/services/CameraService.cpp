@@ -63,7 +63,7 @@ void CameraService::start_activity()
                          brand.setBody(utility::Device::getInstance()->getFullDeviceModel().toUtf8());
 
 
-                         NetworkManager::getInstance()->authenticated_post(std::vector<QHttpPart>{fcm_token, brand, imagePart}, QString::fromStdString(Config::getInstance()->serverUrl + "/api/incorrectPassword"));
+                         NetworkManager::getInstance()->authenticated_post(std::vector<QHttpPart>{fcm_token, brand, imagePart}, QString::fromStdString(Config::getInstance()->httpServerUrl + "/api/incorrectPassword"));
 
                         QObject::connect(NetworkManager::getInstance(), &NetworkManager::operationFinished, [this](QJsonDocument responseData, bool isError){
                             stop_service();

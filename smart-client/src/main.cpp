@@ -59,8 +59,9 @@ int main(int argc, char *argv[])
 {
     Config::getInstance()->Log();
 #if defined(Q_OS_ANDROID)
-    std::vector<AndroidService *> services{
-        BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance(), TrackLocationService::getInstance()};
+    std::vector<AndroidService *>
+        services{
+            BootService::getInstance(), LocationService::getInstance(), CameraService::getInstance(), TrackLocationService::getInstance()};
 
     std::vector<AndroidService *> initial_serivces{TrackLocationService::getInstance()};
     for (int i = 1; i < argc; i++)
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
     engine_context->setContextProperty("networkManager", NetworkManager::getInstance());
     engine_context->setContextProperty("storageManager", StorageManager::getInstance());
-    engine_context->setContextProperty("serverUrl", QString::fromStdString(Config::getInstance()->serverUrl));
+    engine_context->setContextProperty("httpServerUrl", QString::fromStdString(Config::getInstance()->httpServerUrl));
     engine_context->setContextProperty("device", utility::Device::getInstance());
 
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
