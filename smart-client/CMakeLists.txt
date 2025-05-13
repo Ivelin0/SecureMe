@@ -22,25 +22,13 @@ set(PROJECT_SOURCES
         src/services/LocationService.cpp
         src/services/CameraService.cpp
         src/services/TrackLocationService.cpp
+        src/Config.cpp
 )
-set(OpenCV_DIR "/home/ivelin/opencv/release")
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-file(GLOB SOURCES ${PROJECT_SOURCES})
+
 qt_add_executable(secureme
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
 )
-
-message("Mario ${OpenCV_LIBS}")
-
-set(NEW_LIST "")
-
-foreach(item IN LISTS ${OpenCV_LIBS})
-
-    string(APPEND NEW_LIST "${item}.so ")
-
-endforeach()
 
 target_link_libraries(secureme PRIVATE Qt6::Gui Qt6::CorePrivate Qt6::Network Qt6::Positioning Qt6::Widgets Qt6::Multimedia Qt6::WebSockets Qt6::Concurrent Qt6::Qml
 )
@@ -63,6 +51,7 @@ if(ANDROID)
                      "qml/home.qml"
                      "qml/main.qml"
                      "qml/images/logo.png"
+                     "src/config.json"
                  )
 
     qt_finalize_executable(secureme)
