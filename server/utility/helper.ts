@@ -59,14 +59,14 @@ export const mobileNotify = async (
   return admin
     .messaging()
     .sendEachForMulticast(message)
-    .then((_response): Callback => {
+    .then(async (_response): Promise<Callback> => {
       return {
         type: STATUSES.SUCCESS,
         status: StatusCodes.OK,
         message: "Successfully sent message",
       };
     })
-    .catch((_error) => {
+    .catch(async (_error) => {
       return {
         type: STATUSES.ERROR,
         status: StatusCodes.SERVICE_UNAVAILABLE,

@@ -140,10 +140,10 @@ const trackLocation = async (req: Request, res: Response) => {
       timestamp: Date.now(),
     });
     await location.save();
+
     const deviceDoc: DeviceDocument | null = await DeviceModel.findOne({
       fcm_token: fcm_token,
     });
-
     deviceDoc?.locations!.push(location);
     deviceDoc?.save();
     addMobileData(req.authData.userId, {
@@ -179,24 +179,26 @@ const devices = async (req: Request, res: Response) => {
       .send({ message: MESSAGES.INCORRECT_WEB_AUTH_REQUEST });
     return;
   }
-  const result = await User.aggregate([
-    { $match: { username: req.authData.userId } },
-    {
-      $lookup: {
-        from: "devices",
-        localField: "devices",
-        foreignField: "_id",
-        as: "devices",
+  const result = (
+    await User.aggregate([
+      { $match: { username: req.authData.userId } },
+      {
+        $lookup: {
+          from: "devices",
+          localField: "devices",
+          foreignField: "_id",
+          as: "devices",
+        },
       },
-    },
-    { $unwind: "$devices" },
-    {
-      $group: {
-        _id: "$_id",
-        devices: { $push: "$devices" },
+      { $unwind: "$devices" },
+      {
+        $group: {
+          _id: "$_id",
+          devices: { $push: "$devices" },
+        },
       },
-    },
-  ])[0];
+    ])
+  )[0];
 
   res.json({
     message: (result?.devices ?? []).map((res: DeviceSchema) => res.full_model),
