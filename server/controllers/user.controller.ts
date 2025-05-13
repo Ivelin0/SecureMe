@@ -1,10 +1,11 @@
+import { DeviceDocument, User } from "../schemas/user.schema";
+import { DeviceModel } from "../schemas/user.schema";
+
+import { addMobileData } from "../utility/redis/redis.operations";
 import express from "express";
-import { User } from "../schemas/user.schema";
 import jwt from "jsonwebtoken";
-import { addToken } from "../utility/redis/redis.operations";
-import { DeviceModel, DeviceSchema } from "../schemas/user.schema";
 const register = async (req: express.Request, res: express.Response) => {
-  const { username, password, fcm_token } = req.body;
+  const { username, password, fcm_token, full_model } = req.body;
 
   const userExists = await User.findOne({ username });
 
@@ -27,25 +28,39 @@ const register = async (req: express.Request, res: express.Response) => {
   );
 
   if (fcm_token) {
-    let device: DeviceSchema = { fcm_token: fcm_token, locations: [] };
+    const isDuplicate: boolean =
+      (await DeviceModel.findOne({ fcm_token })) != null;
+    if (isDuplicate) {
+      await DeviceModel.deleteOne({ fcm_token });
+    }
+
+    let device: DeviceDocument = new DeviceModel({
+      fcm_token: fcm_token,
+      locations: [],
+      booted: [],
+      full_model,
+    });
+
+    await device.save();
     user.devices.push(device);
 
-    user.save();
-    addToken(username, { fcm_token });
+    await user.save();
+
+    await addMobileData(username, { fcm_token });
   }
+
   await user.save();
   res.status(200).send({ message: "success", auth_token });
 };
 
 const login = async (req: express.Request, res: express.Response) => {
-  const { username, password, fcm_token } = req.body;
+  const { username, password, fcm_token, full_model } = req.body;
   const userExists = await User.findOne({ username, password });
 
   if (!userExists) {
     res.status(403).send({ message: "username or password is incorrect" });
     return;
   }
-
   const auth_token = jwt.sign(
     { data: { username } },
     String(process.env.JWT_SECRET_KEY),
@@ -54,7 +69,25 @@ const login = async (req: express.Request, res: express.Response) => {
     }
   );
   if (fcm_token) {
-    let device = new DeviceModel({ fcm_token: fcm_token });
+    const isDuplicate: any = await DeviceModel.aggregate([
+      {
+        $match: { username: { $ne: username } },
+      },
+      { $unwind: "$devices" },
+      { $match: { "devices.fcm_token": fcm_token } },
+      {
+        $group: {
+          _id: "$_id",
+          username: { $first: "$username" },
+          devices: { $push: "$devices" },
+        },
+      },
+    ]);
+    if (isDuplicate) {
+      await DeviceModel.deleteOne({ fcm_token });
+    }
+
+    let device = new DeviceModel({ fcm_token: fcm_token, full_model });
     const result = await User.aggregate([
       { $match: { username: username } },
       {
@@ -78,10 +111,11 @@ const login = async (req: express.Request, res: express.Response) => {
 
     if (result.length === 0) {
       userExists.devices.push(device);
-      device.save();
+      await device.save();
 
-      userExists.save();
-      await addToken(username, { fcm_token });
+      await userExists.save();
+      addMobileData(username, { fcm_token });
+
     }
   }
   res.status(200).send({ message: "success", auth_token });

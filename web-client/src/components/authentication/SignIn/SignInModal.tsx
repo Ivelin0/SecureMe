@@ -7,7 +7,7 @@ import {
   Input,
   Link,
 } from "@nextui-org/react";
-import { MailIcon } from "../../MailIcon";
+import { MailIcon } from "../../icons/MailIcon";
 import { EyeFilledIcon } from "../../icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "../../icons/EyeSlashFilledIcon";
 import { AuthComponent } from "../../../models/auth.model";

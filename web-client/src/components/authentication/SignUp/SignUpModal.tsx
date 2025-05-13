@@ -8,8 +8,8 @@ import {
   Link,
   Image,
 } from "@nextui-org/react";
-import { MailIcon } from "../../MailIcon";
-import { LockIcon } from "../../LockIcon";
+import { MailIcon } from "../../icons/MailIcon";
+import { LockIcon } from "../../icons/LockIcon";
 import { useState } from "react";
 import { AuthComponent, SignUp } from "../../../models/auth.model";
 import { useNavigate } from "react-router-dom";
@@ -17,11 +17,7 @@ import SecureMeLogo from "../../../assets/SecureMe.png";
 import useSignUp from "./useSignUp";
 
 const SignUpModal = ({ onClose, setSignIn }: AuthComponent) => {
-  const {
-    errorMessage,
-    handleSubmit,
-    changeData,
-  } = useSignUp();
+  const { errorMessage, handleSubmit, changeData } = useSignUp();
   return (
     <>
       <form onSubmit={handleSubmit}>
