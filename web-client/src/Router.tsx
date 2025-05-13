@@ -9,9 +9,6 @@ import { NextUIProvider } from "@nextui-org/react";
 export default () => {
   const [isAuthorized, setAuhtorization] = useState<boolean>(true);
 
-  useEffect(() => {
-    console.log(isAuthorized);
-  }, [isAuthorized]);
   return (
     <NextUIProvider>
       <BrowserRouter>
