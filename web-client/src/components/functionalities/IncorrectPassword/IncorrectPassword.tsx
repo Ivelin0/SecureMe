@@ -1,42 +1,32 @@
 import { Image, Accordion, AccordionItem } from "@nextui-org/react";
 import { useContext, useEffect, useState } from "react";
-
+import displayDate from "../utility";
 const IncorrectPassword = ({ imagePaths, currFcm }: any) => {
   const [index, setIndex] = useState<number>(0);
   console.log("imagePaths", imagePaths);
 
-  const displayDate = (value: string) => {
-    const timestamp = value.slice(0, -4).split("-")[1];
-    console.log("timestamp", timestamp);
-    const date = new Date(parseInt(timestamp));
-    const formattedDate = date.toLocaleDateString("bg-BG", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  useEffect(() => {
+    setIndex(0);
+  }, [currFcm]);
 
-    return formattedDate;
-  };
   return (
-    <>
+    <div style={{ position: "relative" }}>
       {imagePaths?.length ? (
         <>
-          <h3 className="text-center">Снимка при сгрешена парола</h3>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-around",
-            }}
-          >
+          <h3 className="text-center" style={{ color: "grey" }}>
+            Снимка при сгрешена парола
+          </h3>
+          <div style={{ display: "relative", flexDirection: "row" }}>
             {index > 0 ? (
               <button
                 style={{
-                  border: "2px solid black",
-                  borderRadius: "20px",
-                  width: "40px",
-                  height: "40px",
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translate(0, -50%)",
+                  fontSize: "60px",
+                  color: "white",
+                  border: "2px solid white",
+                  left: 0,
                 }}
                 onClick={() => setIndex((prev) => prev - 1)}
               >
@@ -46,25 +36,28 @@ const IncorrectPassword = ({ imagePaths, currFcm }: any) => {
               <></>
             )}
 
-            <Image
-              width={300}
-              alt="NextUI hero Image"
-              src={`http://localhost:8000/images/${currFcm}/${imagePaths[index]}`}
+            <img
+              src={`http://192.168.1.2:8000/images/${currFcm}/${imagePaths[index]}`}
               onClick={() => {
                 window.open(
-                  `http://localhost:8000/images/${currFcm}/${imagePaths[index]}`,
+                  `http://192.168.1.2:8000/images/${currFcm}/${imagePaths[index]}`,
                   "_blank"
                 );
               }}
+              style={{ zIndex: 0 }}
             />
 
             {index < imagePaths.length - 1 ? (
               <button
                 style={{
-                  border: "2px solid black",
-                  borderRadius: "20px",
-                  width: "40px",
-                  height: "40px",
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translate(0, -50%)",
+                  fontSize: "60px",
+                  right: 0,
+                  color: "white",
+                  border: "2px solid white",
+                  padding: "2%",
                 }}
                 onClick={() => setIndex((prev) => prev + 1)}
               >
@@ -73,7 +66,8 @@ const IncorrectPassword = ({ imagePaths, currFcm }: any) => {
             ) : (
               <h1></h1>
             )}
-          </div>{" "}
+          </div>
+
           <p className="text-center">
             Дата на снимане: {displayDate(imagePaths[index])}
           </p>
@@ -81,7 +75,7 @@ const IncorrectPassword = ({ imagePaths, currFcm }: any) => {
       ) : (
         <p>Няма данни за сгрешени пароли вмомента</p>
       )}
-    </>
+    </div>
   );
 };
 
