@@ -4,7 +4,7 @@ import NavBar from "../components/NavBar";
 import "../styles/main.css";
 import DevicesLogo from "../assets/devices.png";
 import Functionalities from "../components/Functionalities";
-import SignInModal from "../components/AuthModal";
+import SignInModal from "../components/authentication/AuthModal";
 
 const Home = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();

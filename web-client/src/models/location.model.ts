@@ -1,6 +1,6 @@
 export interface Location {
   event?: "location";
-  latittude: number;
+  latitude: number;
   longitude: number;
   full_brand: String;
 }
@@ -8,9 +8,10 @@ export interface Location {
 export interface Point {
   latitude: number;
   longitude: number;
-  timestamp: number;
+  timestamp?: number;
+  idx?: number;
 }
 
 export interface DeviceCurrentLocation {
-  [fcm_token: string]: Location
+  [fcm_token: string]: Location;
 }

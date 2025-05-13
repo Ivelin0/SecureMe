@@ -6,7 +6,7 @@ import { useState } from "react";
 interface SocketContextProps {
   webSocket: WebSocket | null;
   //setWebSocket: Dispatch<SetStateAction<WebSocket>>;
-  addCallback: (func: WScallback) => void;
+  addWSCallback: (func: WScallback) => void;
 }
 
 type WScallback = (event: MessageEvent<any>) => void;
@@ -17,12 +17,12 @@ export const Context = ({ children }: any) => {
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
   const [arrCallbacks, setArrCallbacks] = useState<Array<WScallback>>([]);
 
-  const addCallback = (func: WScallback) => {
+  const addWSCallback = (func: WScallback) => {
     setArrCallbacks([...arrCallbacks, func]);
   };
   useEffect(() => {
     if (!webSocket) return;
-    addCallback((event: MessageEvent) => {
+    addWSCallback((event: MessageEvent) => {
       webSocket.send(JSON.stringify({ message: "pong" }));
     });
   }, [webSocket]);
@@ -59,7 +59,7 @@ export const Context = ({ children }: any) => {
   }, [webSocket, arrCallbacks]);
 
   return (
-    <SocketContext.Provider value={{ webSocket, addCallback }}>
+    <SocketContext.Provider value={{ webSocket, addWSCallback }}>
       {children}
     </SocketContext.Provider>
   );
