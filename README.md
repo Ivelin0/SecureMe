@@ -40,6 +40,8 @@ Current Status: While not being mantained ever since it had followed a successfu
 - **Web Dashboard**: Responsive design accessible from any browser
  
 ## 🏗️ System Architecture
+
+A smart client implementation on Android demonstrates this architecture well, where a Java module serves as an essential bridge since Android's API doesn't provide direct C++ support. This pattern extends across all operating systems, where each platform uses its native language to interface with APIs while calling into the shared C++ module, creating a unified codebase that can be deployed across multiple platforms.
  
 ![AndroidExtension](https://github.com/user-attachments/assets/b99cc36c-1f4f-430b-9246-b347d2aa2324)
 
